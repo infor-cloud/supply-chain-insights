@@ -1,0 +1,134 @@
+
+ orgList:
+      - name: GTN
+        domain: gtn.example.com
+        msp: 
+            name: gtnMSP
+            id: gtnMSP
+
+        peer:
+            - name : peer0.gtn.example.com
+              containerName: peer0.gtn.example.com
+              location: peer0.gtn.example.com@grpc://localhost:7051
+        
+            - name : peer1.gtn.example.com
+              containerName: peer1.gtn.example.com
+              location: peer1.gtn.example.com@grpc://localhost:7056
+        
+        anchorPeers:
+            - host: peer0.gtn.example.com
+              port: 7051
+
+        orderer:
+            orgName: Orderer
+            domain: example.com
+            name: orderer@example.com
+            location: orderer.example.com@grpc://localhost:7050
+        
+        eventHub:
+            - location: peer0.gtn.example.com@grpc://localhost:7053
+            
+            - location: peer1.gtn.example.com@grpc://localhost:7058
+        
+        ca:
+            containerName: ca_peerGTN
+            location: http://localhost:7054
+            
+        
+        user: #Count is excluding Admin
+            - name: admin
+              hostName: Admin@gtn.example.com
+              role: admin
+            
+            - name: User1
+              hostName: User1@gtn.example.com
+              role: member
+    
+      - name: Elemica
+        domain: elemica.example.com
+        msp: 
+            name: elemicaMSP
+            id: elemicaMSP
+
+        peer:
+            - name : peer0.elemica.example.com
+              containerName: peer0.elemica.example.com
+              location: peer0.elemica.example.com@grpc://localhost:8051
+        
+            - name : peer1.elemica.example.com
+              containerName: peer1.elemica.example.com
+              location: peer1.elemica.example.com@grpc://localhost:8056
+        
+        anchorPeers:
+            - host: peer0.elemica.example.com
+              port: 7051
+
+        orderer:
+            orgName: Orderer
+            domain: example.com
+            name: orderer@example.com
+            location: orderer.example.com@grpc://localhost:7050
+        
+        eventHub:
+            - location: peer0.elemica.example.com@grpc://localhost:8053
+            
+            - location: peer1.elemica.example.com@grpc://localhost:8058
+        
+        ca:
+            containerName: ca_peerelemica
+            location: http://localhost:8054
+            
+        
+        user: #Count is excluding Admin
+            - name: admin
+              hostName: Admin@elemica.example.com
+              role: admin
+            
+            - name: User1
+              hostName: User1@elemica.example.com
+              role: member
+              
+              
+      - name: Dun&BradStreet
+        domain: dnb.example.com
+        msp: 
+            name: dnbMSP
+            id: dnbMSP
+
+        peer:
+            - name : peer0.dnb.example.com
+              containerName: peer0.dnb.example.com
+              location: peer0.dnb.example.com@grpc://localhost:9051
+        
+            - name : peer1.dnb.example.com
+              containerName: peer1.dnb.example.com
+              location: peer1.dnb.example.com@grpc://localhost:9056
+        
+        anchorPeers:
+            - host: peer0.dnb.example.com
+              port: 7051
+
+        orderer:
+            orgName: Orderer
+            domain: example.com
+            name: orderer@example.com
+            location: orderer.example.com@grpc://localhost:7050
+        
+        eventHub:
+            - location: peer0.dnb.example.com@grpc://localhost:9053
+            
+            - location: peer1.dnb.example.com@grpc://localhost:9058
+        
+        ca:
+            containerName: ca_peerDnB
+            location: http://localhost:9054
+            
+        
+        user: #Count is excluding Admin
+            - name: admin
+              hostName: Admin@dnb.example.com
+              role: admin
+            
+            - name: User1
+              hostName: User1@dnb.example.com
+              role: member      

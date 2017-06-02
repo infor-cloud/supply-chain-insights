@@ -1,0 +1,187 @@
+version: '2'
+
+services:
+  ca0:
+    image: hyperledger/fabric-ca${IMAGE_TAG_FABRIC_CA}
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+    ports:
+      - "7054:7054"
+    command: sh -c 'fabric-ca-server start --ca.certfile /etc/hyperledger/fabric-ca-server-config/ca.gtn.example.com-cert.pem --ca.keyfile /etc/hyperledger/fabric-ca-server-config/9a6507142f1ccf1f2f93b40a51ae752d5db487c06fa016cd605896367f5d057b_sk -b admin:adminpw ${ORG_HYPERLEDGER_FABRIC_SDKTEST_INTEGRATIONTESTS_CA_TLS} --tls.certfile /etc/hyperledger/fabric-ca-server-config/ca.gtn.example.com-cert.pem --tls.keyfile /etc/hyperledger/fabric-ca-server-config/9a6507142f1ccf1f2f93b40a51ae752d5db487c06fa016cd605896367f5d057b_sk -d'
+    volumes:
+      - ../crypto-config/peerOrganizations/gtn.example.com/ca/:/etc/hyperledger/fabric-ca-server-config:ro
+    container_name: ca_peerGTN
+
+  ca1:
+    image: hyperledger/fabric-ca${IMAGE_TAG_FABRIC_CA}
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+    ports:
+      - "8054:7054"
+    command: sh -c 'fabric-ca-server start --ca.certfile /etc/hyperledger/fabric-ca-server-config/ca.elemica.example.com-cert.pem --ca.keyfile /etc/hyperledger/fabric-ca-server-config/87f6c98fe65d20ed84f82c1531698b640e4e2fdaf0e53d3ca202ad0db1911f0c_sk -b admin:adminpw ${ORG_HYPERLEDGER_FABRIC_SDKTEST_INTEGRATIONTESTS_CA_TLS} --tls.certfile /etc/hyperledger/fabric-ca-server-config/ca.elemica.example.com-cert.pem --tls.keyfile /etc/hyperledger/fabric-ca-server-config/87f6c98fe65d20ed84f82c1531698b640e4e2fdaf0e53d3ca202ad0db1911f0c_sk -d'
+    volumes:
+      - ../crypto-config/peerOrganizations/elemica.example.com/ca/:/etc/hyperledger/fabric-ca-server-config:ro
+    container_name: ca_peerElemica
+
+  ca2:
+    image: hyperledger/fabric-ca${IMAGE_TAG_FABRIC_CA}
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+    ports:
+      - "9054:7054"
+    command: sh -c 'fabric-ca-server start --ca.certfile /etc/hyperledger/fabric-ca-server-config/ca.dnb.example.com-cert.pem --ca.keyfile /etc/hyperledger/fabric-ca-server-config/d0499a3b9cceb3c37bffb647ddeb6ad21e4b45de8b9077564de9f97bc190678a_sk -b admin:adminpw ${ORG_HYPERLEDGER_FABRIC_SDKTEST_INTEGRATIONTESTS_CA_TLS} --tls.certfile /etc/hyperledger/fabric-ca-server-config/ca.dnb.example.com-cert.pem --tls.keyfile /etc/hyperledger/fabric-ca-server-config/d0499a3b9cceb3c37bffb647ddeb6ad21e4b45de8b9077564de9f97bc190678a_sk -d'
+    volumes:
+      - ../crypto-config/peerOrganizations/dnb.example.com/ca/:/etc/hyperledger/fabric-ca-server-config:ro
+    container_name: ca_peerDnB
+  
+  orderer.example.com:
+    container_name: orderer.example.com
+    image: hyperledger/fabric-orderer${IMAGE_TAG_FABRIC}
+    environment:
+      - ORDERER_GENERAL_LOGLEVEL=debug
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_GENESISMETHOD=file
+      - ORDERER_GENERAL_GENESISFILE=/etc/hyperledger/configtx/orderer.block
+      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+      - ORDERER_GENERAL_LOCALMSPDIR=/etc/hyperledger/msp/orderer/msp
+      - ORDERER_GENERAL_TLS_ENABLED=${ORG_HYPERLEDGER_FABRIC_SDKTEST_INTEGRATIONTESTS_TLS}
+      - ORDERER_GENERAL_TLS_PRIVATEKEY=/etc/hyperledger/msp/orderer/tls/server.key
+      - ORDERER_GENERAL_TLS_CERTIFICATE=/etc/hyperledger/msp/orderer/tls/server.crt
+      - ORDERER_GENERAL_TLS_ROOTCAS=[/etc/hyperledger/msp/orderer/tls/ca.crt]
+#      - ORDERER_GENERAL_TLS_ROOTCAS=[/etc/hyperledger/msp/orderer/tls/ca.crt, /etc/hyperledger/msp/peer0Org1/tls/ca.crt, /etc/hyperledger/msp/peer1Org1/tls/ca.crt, /etc/hyperledger/msp/peer0Org2/tls/ca.crt, /etc/hyperledger/msp/peer1Org2/tls/ca.crt]
+      - GRPC_TRACE=all=true,
+      - GRPC_VERBOSITY=debug
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric
+    command: orderer
+    volumes:
+     - ./config:/etc/hyperledger/configtx:ro
+     - ./../crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/:/etc/hyperledger/msp/orderer:ro
+    ports:
+      - 7050:7050
+
+  peer0.gtn.example.com:
+    container_name: peer0.gtn.example.com
+    extends:
+      file: ./peer-base/peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer0.gtn.example.com
+      - CORE_PEER_ADDRESS=peer0.gtn.example.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.gtn.example.com:7051
+#      - CORE_PEER_GOSSIP_ORGLEADER=true
+      - CORE_PEER_LOCALMSPID=gtnMSP
+    volumes:
+      - /var/run/:/host/var/run/
+      - ./../crypto-config/peerOrganizations/gtn.example.com/peers/peer0.gtn.example.com/:/etc/hyperledger/msp/peer:ro
+    ports:
+      - 7051:7051
+      - 7053:7053
+    depends_on:
+      - orderer.example.com
+
+  peer1.gtn.example.com:
+    container_name: peer1.gtn.example.com
+    extends:
+      file: ./peer-base/peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer1.gtn.example.com
+      - CORE_PEER_ADDRESS=peer1.gtn.example.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.gtn.example.com:7051
+#      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.gtn.example.com:7051
+      - CORE_PEER_LOCALMSPID=gtnMSP
+    volumes:
+         - /var/run/:/host/var/run/
+         - ./../crypto-config/peerOrganizations/gtn.example.com/peers/peer1.gtn.example.com/:/etc/hyperledger/msp/peer:ro
+    ports:
+       - 7056:7051
+       - 7058:7053
+    depends_on:
+       - orderer.example.com
+       - peer0.gtn.example.com
+
+  peer0.elemica.example.com:
+    container_name: peer0.elemica.example.com
+    extends:
+      file: ./peer-base/peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer0.elemica.example.com
+      - CORE_PEER_ADDRESS=peer0.elemica.example.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.elemica.example.com:8051
+#      - CORE_PEER_GOSSIP_ORGLEADER=true
+      - CORE_PEER_LOCALMSPID=elemicaMSP
+    volumes:
+      - /var/run/:/host/var/run/
+      - ./../crypto-config/peerOrganizations/elemica.example.com/peers/peer0.elemica.example.com/:/etc/hyperledger/msp/peer:ro
+    ports:
+      - 8051:7051
+      - 8053:7053
+    depends_on:
+      - orderer.example.com
+
+  peer1.elemica.example.com:
+    container_name: peer1.elemica.example.com
+    extends:
+      file: ./peer-base/peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer1.elemica.example.com
+      - CORE_PEER_ADDRESS=peer1.elemica.example.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.elemica.example.com:8051
+#      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.elemica.example.com:8051
+      - CORE_PEER_LOCALMSPID=elemicaMSP
+    volumes:
+         - /var/run/:/host/var/run/
+         - ./../crypto-config/peerOrganizations/elemica.example.com/peers/peer1.elemica.example.com/:/etc/hyperledger/msp/peer:ro
+    ports:
+       - 8056:7051
+       - 8058:7053
+    depends_on:
+       - orderer.example.com
+       - peer0.elemica.example.com
+
+  peer0.dnb.example.com:
+    container_name: peer0.dnb.example.com
+    extends:
+      file: ./peer-base/peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer0.dnb.example.com
+      - CORE_PEER_ADDRESS=peer0.dnb.example.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.dnb.example.com:8051
+#      - CORE_PEER_GOSSIP_ORGLEADER=true
+      - CORE_PEER_LOCALMSPID=dnbMSP
+    volumes:
+      - /var/run/:/host/var/run/
+      - ./../crypto-config/peerOrganizations/dnb.example.com/peers/peer0.dnb.example.com/:/etc/hyperledger/msp/peer:ro
+    ports:
+      - 9051:7051
+      - 9053:7053
+    depends_on:
+      - orderer.example.com
+
+  peer1.dnb.example.com:
+    container_name: peer1.dnb.example.com
+    extends:
+      file: ./peer-base/peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer1.dnb.example.com
+      - CORE_PEER_ADDRESS=peer1.dnb.example.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.dnb.example.com:8051
+#      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.dnb.example.com:8051
+      - CORE_PEER_LOCALMSPID=dnbMSP
+    volumes:
+         - /var/run/:/host/var/run/
+         - ./../crypto-config/peerOrganizations/dnb.example.com/peers/peer1.dnb.example.com/:/etc/hyperledger/msp/peer:ro
+    ports:
+       - 9056:7051
+       - 9058:7053
+    depends_on:
+       - orderer.example.com
+       - peer0.dnb.example.com
+  
+  ccenv:
+    image: hyperledger/fabric-ccenv${IMAGE_TAG_FABRIC}
+
