@@ -7,7 +7,7 @@ services:
       # the following setting starts chaincode containers on the same
       # bridge network as the peers
       # https://docs.docker.com/compose/networking/
-      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=sdkintegration_default
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=scripts_default
       #- CORE_LOGGING_LEVEL=ERROR
       - CORE_LOGGING_LEVEL=DEBUG
       - CORE_PEER_ENDORSER_ENABLED=true
@@ -18,6 +18,8 @@ services:
       - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/peer/msp
       - CORE_PEER_GOSSIP_SKIPHANDSHAKE=true
       - CORE_PEER_PROFILE_ENABLED=false
+      - CORE_CHAINCODE_LOGGING_LEVEL=info
+      - CORE_CHAINCODE_LOGGING_SHIM=debug
       - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/msp/peer/tls/server.crt
       - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/msp/peer/tls/server.key
       - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/msp/peer/tls/ca.crt

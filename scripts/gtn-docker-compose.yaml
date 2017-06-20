@@ -1,0 +1,60 @@
+version: '2'
+
+services:
+  ca0:
+    image: hyperledger/fabric-ca${IMAGE_TAG_FABRIC_CA}
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+    ports:
+      - "7054:7054"
+    command: sh -c 'fabric-ca-server start --ca.certfile /etc/hyperledger/fabric-ca-server-config/ca.gtn.example.com-cert.pem --ca.keyfile /etc/hyperledger/fabric-ca-server-config/9a6507142f1ccf1f2f93b40a51ae752d5db487c06fa016cd605896367f5d057b_sk -b admin:adminpw ${ORG_HYPERLEDGER_FABRIC_SDKTEST_INTEGRATIONTESTS_CA_TLS} --tls.certfile /etc/hyperledger/fabric-ca-server-config/ca.gtn.example.com-cert.pem --tls.keyfile /etc/hyperledger/fabric-ca-server-config/9a6507142f1ccf1f2f93b40a51ae752d5db487c06fa016cd605896367f5d057b_sk -d'
+    volumes:
+      - ../crypto-config/peerOrganizations/gtn.example.com/ca/:/etc/hyperledger/fabric-ca-server-config:ro
+    container_name: ca_peerGTN
+
+  
+  peer0.gtn.example.com:
+    container_name: peer0.gtn.example.com
+    extends:
+      file: ./peer-base/peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer0.gtn.example.com
+      - CORE_PEER_ADDRESS=peer0.gtn.example.com:7051
+      - CORE_PEER_ENDORSER_ENABLED=true
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.gtn.example.com:7051
+#      - CORE_PEER_GOSSIP_ORGLEADER=true
+      - CORE_PEER_LOCALMSPID=gtnMSP
+    volumes:
+      - /var/run/:/host/var/run/
+      - ./../crypto-config/peerOrganizations/gtn.example.com/peers/peer0.gtn.example.com/:/etc/hyperledger/msp/peer:ro
+    ports:
+      - 7051:7051
+      - 7053:7053
+    
+  peer1.gtn.example.com:
+    container_name: peer1.gtn.example.com
+    extends:
+      file: ./peer-base/peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer1.gtn.example.com
+      - CORE_PEER_ADDRESS=peer1.gtn.example.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.gtn.example.com:7051
+#      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.gtn.example.com:7051
+      - CORE_PEER_LOCALMSPID=gtnMSP
+    volumes:
+         - /var/run/:/host/var/run/
+         - ./../crypto-config/peerOrganizations/gtn.example.com/peers/peer1.gtn.example.com/:/etc/hyperledger/msp/peer:ro
+    ports:
+       - 7056:7051
+       - 7058:7053
+    depends_on:       
+       - peer0.gtn.example.com
+
+  
+  
+  ccenv:
+    image: hyperledger/fabric-ccenv${IMAGE_TAG_FABRIC}
+    
+  

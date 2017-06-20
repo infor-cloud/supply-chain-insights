@@ -1,0 +1,35 @@
+version: '2'
+
+services:
+    
+  orderer.example.com:
+    container_name: orderer.example.com
+    image: hyperledger/fabric-orderer${IMAGE_TAG_FABRIC}
+    environment:
+      - ORDERER_GENERAL_LOGLEVEL=debug
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_GENESISMETHOD=file
+      - ORDERER_GENERAL_GENESISFILE=/etc/hyperledger/configtx/genesisTwoOrgs.block
+      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+      - ORDERER_GENERAL_LOCALMSPDIR=/etc/hyperledger/msp/orderer/msp
+      - ORDERER_GENERAL_TLS_ENABLED=${ORG_HYPERLEDGER_FABRIC_SDKTEST_INTEGRATIONTESTS_TLS}
+      - ORDERER_GENERAL_TLS_PRIVATEKEY=/etc/hyperledger/msp/orderer/tls/server.key
+      - ORDERER_GENERAL_TLS_CERTIFICATE=/etc/hyperledger/msp/orderer/tls/server.crt
+      - ORDERER_GENERAL_TLS_ROOTCAS=[/etc/hyperledger/msp/orderer/tls/ca.crt]
+#      - ORDERER_GENERAL_TLS_ROOTCAS=[/etc/hyperledger/msp/orderer/tls/ca.crt, /etc/hyperledger/msp/peer0Org1/tls/ca.crt, /etc/hyperledger/msp/peer1Org1/tls/ca.crt, /etc/hyperledger/msp/peer0Org2/tls/ca.crt, /etc/hyperledger/msp/peer1Org2/tls/ca.crt]
+      - GRPC_TRACE=all=true,
+      - GRPC_VERBOSITY=debug
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric
+    command: orderer
+    volumes:
+     - ./config:/etc/hyperledger/configtx:ro
+     - ./../crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/:/etc/hyperledger/msp/orderer:ro
+    ports:
+      - 7050:7050
+
+  
+  
+  ccenv:
+    image: hyperledger/fabric-ccenv${IMAGE_TAG_FABRIC}
+    
+ 

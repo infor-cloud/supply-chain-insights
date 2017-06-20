@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+  
+  <script
+  src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
+  integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
+  crossorigin="anonymous"></script>
+  
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.1.4/js.cookie.js"></script>
+
+<meta charset="ISO-8859-1">
+<title>Setting User Information</title>
+</head>
+<body>
+ 
+  User Information: <br>
+  Organization: <input type="text" id="orgName"> <br>
+  User Name: 	<input type="text" id="userName"> <br>
+  Channel Name:	<input type="text" id="channelName"> <br><br>
+  <button id="setProfile" class="float-left submit-button">Set Profile</button>
+ 
+ <script type="text/javascript">
+ function checkCookies(){
+	return $("#orgName").val() && $("#userName").val() && $("#channelName").val()
+ }
+ 
+ $("#setProfile").click(function(){
+	 if (!checkCookies()){
+		 alert("All fields must be filled in!")
+	 }
+	 else {
+		 Cookies.set('orgName', $("#orgName").val(), {domain: '', path: ''});
+		 Cookies.set('userName', $("#userName").val(), {domain: '', path: ''});
+		 Cookies.set('channelName', $("#channelName").val(), {domain: '', path: ''});
+	 
+		 location.href="./index.html" 
+	 }
+ })
+
+ $(function(){
+	 $("#orgName").val(Cookies.get('orgName'))
+	 $("#userName").val(Cookies.get('userName'))
+	 $("#channelName").val(Cookies.get('channelName'))
+	 
+ })
+	 
+ </script>
+</body>
+</html>

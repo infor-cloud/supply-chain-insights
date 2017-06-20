@@ -67,6 +67,7 @@ services:
     environment:
       - CORE_PEER_ID=peer0.gtn.example.com
       - CORE_PEER_ADDRESS=peer0.gtn.example.com:7051
+      - CORE_PEER_ENDORSER_ENABLED=true
       - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.gtn.example.com:7051
 #      - CORE_PEER_GOSSIP_ORGLEADER=true
       - CORE_PEER_LOCALMSPID=gtnMSP
@@ -149,7 +150,7 @@ services:
     environment:
       - CORE_PEER_ID=peer0.dnb.example.com
       - CORE_PEER_ADDRESS=peer0.dnb.example.com:7051
-      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.dnb.example.com:8051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.dnb.example.com:9051
 #      - CORE_PEER_GOSSIP_ORGLEADER=true
       - CORE_PEER_LOCALMSPID=dnbMSP
     volumes:
@@ -169,7 +170,7 @@ services:
     environment:
       - CORE_PEER_ID=peer1.dnb.example.com
       - CORE_PEER_ADDRESS=peer1.dnb.example.com:7051
-      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.dnb.example.com:8051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.dnb.example.com:9051
 #      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.dnb.example.com:8051
       - CORE_PEER_LOCALMSPID=dnbMSP
     volumes:
@@ -184,4 +185,12 @@ services:
   
   ccenv:
     image: hyperledger/fabric-ccenv${IMAGE_TAG_FABRIC}
+    
+  couchdb:
+    container_name: couchdb
+    image: hyperledger/fabric-couchdb
+    ports:
+      - 5984:5984
+    environment:
+      DB_URL: http://localhost:5984/member_db    
 

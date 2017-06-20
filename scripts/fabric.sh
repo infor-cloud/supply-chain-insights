@@ -6,6 +6,10 @@ if [ ! -e "docker-compose.yaml" ];then
   exit 8
 fi
 
+if [ $# -eq 0 ]
+  then
+    echo $"Usage: $0 {up|down|clean|restart}"
+fi
 
 function clean(){
 

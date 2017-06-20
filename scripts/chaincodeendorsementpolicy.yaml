@@ -1,0 +1,23 @@
+---
+# A Shotgun policy xx
+identities:  # list roles to be used in the policy
+    user1: {"role": {"name": "member", "mspId": "gtnMSP"}} 
+    user2: {"role": {"name": "member", "mspId": "elemicaMSP"}}
+    user3: {"role": {"name": "member", "mspId": "dnbMSP"}}
+    admin1: {"role": {"name": "admin", "mspId": "gtnMSP"}} 
+    admin2: {"role": {"name": "admin", "mspId": "elemicaMSP"}}
+    admin3: {"role": {"name": "admin", "mspId": "dnbMSP"}}
+
+policy: # the policy  .. could have been flat but show grouping.
+    1-of: # signed by one of these groups  can be <n>-of  where <n> is any digit 2-of, 3-of etc..
+      - 1-of:
+        - signed-by: "user1" 
+        - signed-by: "admin1"
+      - 1-of:
+        - signed-by: "user2"
+        - signed-by: "admin2"
+        
+      - 1-of:
+        - signed-by: "user3"
+        - signed-by: "admin3"
+  

@@ -1,6 +1,6 @@
 package org.non.config;
 
-public class AnchorPeer {
+public class AnchorPeerDetails {
 	private String host;
 	private String port;
 	

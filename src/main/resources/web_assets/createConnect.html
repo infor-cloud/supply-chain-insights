@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+<script
+  src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
+  integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
+  crossorigin="anonymous"></script>	
+<meta charset="ISO-8859-1">
+<title>Create Connection</title>
+</head>
+<body>
+  Enter in Connection Information <br><br>
+  Buyer:<input type="text" id="comp1"><br> 
+  Seller: <input type="text" id="comp2">     
+  <br>
+  <br>
+  <button id="create" class="float-left submit-button">Create </button>
+  <button id="goBack" class="float-left submit-button">Go Back</button>
+  <script type="text/javascript">
+  $("#goBack").click(function(){
+	location.href="./index.html" 
+  });
+  $("#create").click(function() {
+	$.ajax({
+		
+		type: "GET",
+		url: "http://localhost:8080/fabric/createConnect",
+		dataType: "json",
+		success: function(data) {
+			alert(data.buyer);
+		},
+			data: {cp2: $("#comp2").val(), cp1: $("#comp1").val()}
+		});
+	});
+  </script>
+   
+   
+</body>
+</html>

@@ -1,0 +1,59 @@
+version: '2'
+
+services:
+  ca1:
+    image: hyperledger/fabric-ca${IMAGE_TAG_FABRIC_CA}
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+    ports:
+      - "8054:7054"
+    command: sh -c 'fabric-ca-server start --ca.certfile /etc/hyperledger/fabric-ca-server-config/ca.elemica.example.com-cert.pem --ca.keyfile /etc/hyperledger/fabric-ca-server-config/87f6c98fe65d20ed84f82c1531698b640e4e2fdaf0e53d3ca202ad0db1911f0c_sk -b admin:adminpw ${ORG_HYPERLEDGER_FABRIC_SDKTEST_INTEGRATIONTESTS_CA_TLS} --tls.certfile /etc/hyperledger/fabric-ca-server-config/ca.elemica.example.com-cert.pem --tls.keyfile /etc/hyperledger/fabric-ca-server-config/87f6c98fe65d20ed84f82c1531698b640e4e2fdaf0e53d3ca202ad0db1911f0c_sk -d'
+    volumes:
+      - ../crypto-config/peerOrganizations/elemica.example.com/ca/:/etc/hyperledger/fabric-ca-server-config:ro
+    container_name: ca_peerElemica
+
+  
+  peer0.elemica.example.com:
+    container_name: peer0.elemica.example.com
+    extends:
+      file: ./peer-base/peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer0.elemica.example.com
+      - CORE_PEER_ADDRESS=peer0.elemica.example.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.elemica.example.com:8051
+#      - CORE_PEER_GOSSIP_ORGLEADER=true
+      - CORE_PEER_LOCALMSPID=elemicaMSP
+    volumes:
+      - /var/run/:/host/var/run/
+      - ./../crypto-config/peerOrganizations/elemica.example.com/peers/peer0.elemica.example.com/:/etc/hyperledger/msp/peer:ro
+    ports:
+      - 8051:7051
+      - 8053:7053
+    
+  peer1.elemica.example.com:
+    container_name: peer1.elemica.example.com
+    extends:
+      file: ./peer-base/peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer1.elemica.example.com
+      - CORE_PEER_ADDRESS=peer1.elemica.example.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.elemica.example.com:8051
+#      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.elemica.example.com:8051
+      - CORE_PEER_LOCALMSPID=elemicaMSP
+    volumes:
+         - /var/run/:/host/var/run/
+         - ./../crypto-config/peerOrganizations/elemica.example.com/peers/peer1.elemica.example.com/:/etc/hyperledger/msp/peer:ro
+    ports:
+       - 8056:7051
+       - 8058:7053
+    depends_on:
+       - peer0.elemica.example.com
+
+  
+  
+  ccenv:
+    image: hyperledger/fabric-ccenv${IMAGE_TAG_FABRIC}
+    
+  

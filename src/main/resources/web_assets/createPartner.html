@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+  
+
+<script src="http://cdn.cloudwall.me/1.2/general.js"></script>
+
+  <script
+  src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
+  integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
+  crossorigin="anonymous"></script>	
+  
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.1.4/js.cookie.js"></script>
+  
+  
+<meta charset="ISO-8859-1">
+<title> Creating a Trading Partner </title>
+</head>
+<body>
+	<p> </p>
+  Company Information:	<br>
+  Name:			<input type="text" id="name"><br>			
+  Website URI:	<input type="text" id="websiteURI"><br><br><br>
+
+
+  <div id="AddressContainer">
+  Address:		<br>
+  Street Name:	<input type="text" id="streetName"><br>
+  City Name		<input type="text" id="cityName"><br>
+  Postal Zone 	<input type="text" id="postalZone"><br>
+  </div>
+
+  <br><br>
+
+  <div id="ContactContainer">
+  Contact: 		<br>
+  Name:			<input type="text" id="contactName"><br>
+  E-mail:		<input type="text" id="contactEmail"><br>
+  Telephone		<input type="text" id="contactTelephone"><br><br>
+  </div> 
+ 
+  <div id="IDContainer">
+  Identifiers: <br>
+  Scheme Name &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ID
+  <br>
+    <div id="list">
+	  <div class="row br2">
+	    <span class="fi-list"></span> 
+	    <input id="schemeName" type="text" class="w180">
+	    <input id="id" type="text"class="w170">
+	    <span class="fi-x red o50 pl5"></span>
+	  </div>
+	</div>
+	<input id="btn-add" type="button" value="Add Identifier" class="mt10"><br>
+   </div><br><br>
+ 
+  
+  
+  <button id="create" class="float-left submit-button">Create </button>
+  <button id="goBack" class="float-left submit-button">Go Back</button>
+
+   <script type="text/javascript">
+   var identifier = {
+		list: {}
+   }
+   
+   
+// Manifest
+   var manifest = {
+		   data: {
+			   users:[] },
+		   ui: {
+		     "#list":{
+		       bind:"users",
+		       manifest:"UserForm",
+		       list:'>div.row',
+		       init: function ($control) {
+		         $control.sortable({ handle: ".fi-list" });
+		       }
+		     },
+		     "#btn-add": function (data, val) {
+		       if (null != val) this.my.insert("#list", {});
+		     }
+		   },
+		   style:{
+		     " #list>div":"width:400px; border-bottom:1px dotted #aaa;"
+		         +"padding:5px 0 10px 0;margin:5px 0;"
+		   },
+		   UserForm:{
+		     ui:{
+		       "#id":"id",
+		       "#schemeName":"schemeName",
+		       ".fi-x":{
+		         bind: function (data, val) {
+		           if (null != val) this.my.remove();
+		         },
+		         events:"click.my"
+		       }
+		     }
+		   },
+		   id:"Subform list"
+   };
+   function toObject(ids, schemeNames){
+	   var result ={}
+	   for (var i = 0; i < ids.length;i++){
+		   result[schemeNames[i].value] = ids[i].value
+	   }
+	   return result;
+	   
+   }
+   
+   function checkCookies(){
+	   if( Cookies.get('orgName') && Cookies.get('userName') && Cookies.get('channelName'))
+	   		return true
+	   		
+	   return false;
+   }
+   
+   function disableButtons() {
+	   $("#goBack").prop('disabled', true);
+	   $("#create").prop('disabled', true);
+	   $("#btn-add").prop('disabled', true);
+   }
+   
+   function enableButtons() {
+	   $("#goBack").prop('disabled', false);
+	   $("#create").prop('disabled', false);
+	   $("#btn-add").prop('disabled', false);
+   }
+   
+   $(function() {
+	    $("#btn-add").trigger("click");
+	});
+   
+   $("#IDContainer").my( manifest, identifier);
+   
+   $("#goBack").click(function(){
+	   location.href="./index.html"
+   })
+   $("#create").click(function() {
+	   disableButtons()
+	   if(!$("#name").val()){
+		   alert("Name field cannot be blank!")
+		   enableButtons()
+		   
+	   }
+	   else if(!checkCookies()){
+		   alert("User info not set up!")
+		   location.href="./sessionProfile.html"
+	   }
+	   else{
+	   	$.ajax({
+				type: "GET",
+				url: "http://localhost:8080/fabric/create",
+				dataType: "json",
+				success: function(data) {
+					alert("Added successfully! Returning to Index")
+					location.href="./index.html"
+				},
+				error : function(data) {
+					$("#error").remove();
+					$('body').prepend("<p id='error'></p>")
+					$('#error').append(JSON.stringify (data))
+					$('#error').css('color', 'red')
+					alert('Error!')
+					enableButtons();
+				},
+				data: {name: 			$("#name").val(), 
+					websiteURI: 		$("#websiteURI").val(),
+					streetName: 		$("#streetName").val(),
+					cityName: 			$("#cityName").val(),
+					postalZone: 		$("#postalZone").val(),
+					contactName: 		$("#contactName").val(),
+					contactEmail: 		$("#contactEmail").val(),
+					contactTelephone: 	$("#contactTelephone").val(),
+					identifier: 		JSON.stringify(identifier.users),
+					address: 			JSON.stringify($("cityName").val()),
+					userName: 			Cookies.get('userName'),
+					orgName: 			Cookies.get('orgName'),
+					channelName: 		Cookies.get('channelName'),
+					}
+				})
+		   	}
+	   		
+		});
+   </script>
+   
+   
+</body>
+</html>

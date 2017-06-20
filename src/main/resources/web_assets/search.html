@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+  
+  <script
+  src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
+  integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
+  crossorigin="anonymous"></script>	
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.1.4/js.cookie.js"></script>
+<meta charset="ISO-8859-1">
+<title>Searching for Trading Partners</title>
+</head>
+<body>
+  Enter the name of the company you're looking for: <br><input type="text" id="compName"><br><br>
+   <button id="submit" class="float-left submit-button">Search </button>
+   <button id="goBack" class="float-left submit-button">Go Back</button>
+   <script type="text/javascript">
+   
+   function checkCookies(){
+	   if( Cookies.get('orgName') && Cookies.get('userName') && Cookies.get('channelName'))
+	   		return true
+	   return false;
+   }
+   
+   $("#compName").keypress(function(e) {
+	    if(e.which == 13) {
+	    	$("#submit").click();
+	    }
+	});
+   
+   
+   $("#goBack").click(function(){
+	 	location.href="./index.html" 
+	 	
+	 	
+  })
+   $("#submit").click(function() {
+	   $("#goBack").prop('disabled', true);
+	   $("#create").prop('disabled', true);
+		$("#searchResults").remove()
+		$("#error").remove();
+	   if(!$("#compName").val()) {
+		   alert("No company name selected")
+		   $("#goBack").prop('disabled', false);
+		   $("#create").prop('disabled', false);
+	   } 
+	   else if (!checkCookies()){
+		   alert("User info not set up!")
+		   location.href="./sessionProfile.html"
+	   }
+	   else {
+		$.ajax({
+			type: "GET",
+			url: "http://localhost:8080/fabric/search",
+			dataType: "json",
+			success: function(data) {
+				var obj = JSON.parse(data);
+				$('body').append ("<p id='searchResults'></p>")
+				$('#searchResults').append ("<br/>Name: " 		 	   + obj.name + 
+											"<br/>Website URI: " 	   + obj.websiteURI +
+											"<br/>Street Name: " 	   + obj.streetName + 
+											"<br/>City Name: " 	 	   + obj.cityName + 
+											"<br/>Postal Zone: "	   + obj.postalZone + 
+											"<br/>Contact Name: " 	   + obj.contactName +
+											"<br/>Contact Email: " 	   + obj.contactEmail +
+											"<br/>Contact Telephone: " + obj.contactTelephone +
+											"<br/> Identifier(s): ");
+				$.each(obj.idList,function(index, value){
+					$('#searchResults').append("<br/>	id: " + value.id + " Scheme Name: " + value.schemeName)
+				});
+				
+				$("#goBack").prop('disabled', false);
+				$("#create").prop('disabled', false);
+			},
+			error: function(data){
+				$('body').prepend("<p id='error'></p>")
+				$("#error").append(data.responseText )
+				$("#error").css('color','red')
+				$("#goBack").prop('disabled', false);
+				$("#create").prop('disabled', false);
+			},
+			data: {orgName: Cookies.get('orgName'),
+				userName: Cookies.get('userName'),
+				channelName: Cookies.get('channelName'),
+				compName: $("#compName").val()
+			}
+		});
+	   }
+	});
+   </script>
+   
+   
+</body>
+</html>

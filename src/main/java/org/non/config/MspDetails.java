@@ -1,6 +1,6 @@
 package org.non.config;
 
-public class Msp {
+public class MspDetails {
 	private String name;
 	private String id;
 	

@@ -1,6 +1,6 @@
 package org.non.config;
 
-public class Peers {
+public class PeerDetails {
 	private String name;
 	private String containerName;
 	private String location;
@@ -28,6 +28,7 @@ public class Peers {
 	public String getLocation(){
 		return this.location;
 	}
+	
 	
 
 }

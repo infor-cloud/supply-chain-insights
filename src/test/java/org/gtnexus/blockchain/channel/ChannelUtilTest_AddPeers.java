@@ -1,9 +1,10 @@
 package org.gtnexus.blockchain.channel;
 
 import static java.lang.String.format;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
-import java.util.Collection;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -12,25 +13,26 @@ import org.hyperledger.fabric.sdk.BlockEvent;
 import org.hyperledger.fabric.sdk.BlockEvent.TransactionEvent;
 import org.hyperledger.fabric.sdk.ChaincodeID;
 import org.hyperledger.fabric.sdk.Channel;
+import org.hyperledger.fabric.sdk.EventHub;
 import org.hyperledger.fabric.sdk.HFClient;
 import org.hyperledger.fabric.sdk.Orderer;
 import org.hyperledger.fabric.sdk.Peer;
-import org.hyperledger.fabric.sdk.User;
 import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
 import org.hyperledger.fabric.sdk.exception.TransactionEventException;
-import org.junit.Ignore;
-//import org.hyperledger.fabric.sdk.helper.Channel;
+
 import org.junit.Test;
 //import org.non.BaseTestCase;
 import org.non.api.code.HyperledgerAPI;
 import org.non.api.code.HyperledgerTestAPI;
+import org.non.api.code.HLConfigHelper;
 import org.non.config.ChannelDetails;
 import org.non.config.HLConfiguration;
+import org.non.config.NonUser;
 import org.non.config.OrdererDetails;
 import org.non.config.Org;
-import org.non.api.code.HLConfigHelper;
+import org.non.config.PeerDetails;
 
-public class ChannelUtilTest{
+public class ChannelUtilTest_AddPeers {
 
 	private String CHAIN_CODE_NAME = "myCC_go";
 	private String CHAIN_CODE_PATH = "github.com/myCC";
@@ -46,34 +48,58 @@ public class ChannelUtilTest{
 
 	@Test
 	public void createChannelTest() throws InvalidArgumentException {
-
+		
 		HFClient client = HLConfigHelper.getHyperledgerFabricClient();
 		HLConfiguration config = HLConfigHelper.getHyperledgerFabricConfig();
 		
 		ChannelDetails channelDetails = config.getChannelDetails("ch1");
-		List<Org> channelorgs = config.getOrgsOnChannel("ch1");
-
 		try {
-			Org thisOrg = channelorgs.get(0);
-			List<OrdererDetails> ordererDetails = thisOrg.getOrderer();
+			/* Take only org GTN to construct the channel */
+			Org thisOrg = config.getOrgDetailsByName(ORG_NAME_GTN);
 			client.setUserContext(thisOrg.getPeerAdmin());
-			Orderer thisOrderer = client.newOrderer(ordererDetails.get(0).getName(),
-					ordererDetails.get(0).getLocation(), config.getOrdererProperties(ordererDetails.get(0).getName()));
-
-			/* Construct Channel */
-			Channel ch1 = HyperledgerTestAPI.constructChannel("ch1", client, channelorgs, thisOrderer,
-					channelDetails.getTransactionFilePath(), config);
+			
+			/* Take ordererDetails to create object of orderers */
+			List<Orderer> orderers = HLConfigHelper.getOrderers(thisOrg.getOrderer(), client, config);
+			
+			/* Take peerDetails to create object of peers */
+			List<Peer> peers = HLConfigHelper.getPeers(thisOrg.getPeer(), client, config);
+			
+			/*Take eventHubDetails to create object of eventHubs*/
+			List<EventHub> eventHubs = HLConfigHelper.getEventHubs(thisOrg.getEventHub(), thisOrg.getEventHubNames(), client, config);
+			
+			//////////////////////////////////////////////////////////////////////////////////////////////////
+			/* Construct Channel by org GTN*/
+			
+			Channel ch1 = HyperledgerAPI.constructChannelwithOneOrg("ch1", client, thisOrg.getPeerAdmin(), orderers, peers,
+					eventHubs, channelDetails.getTransactionFilePath());
 
 			/* ChainCode Configuration */
 			ChaincodeID chaincodeID = ChaincodeID.newBuilder().setName(CHAIN_CODE_NAME).setVersion(CHAIN_CODE_VERSION)
 					.setPath(CHAIN_CODE_PATH).build();
-
-			/* Install Chaincode */
-			for (Org org : channelorgs) {
-				HyperledgerAPI.installChaincode(client, org.getPeerAdmin(), HLConfigHelper.getPeers(org.getPeer(), client, config), chaincodeID);
+			
+			/* Install Chaincode on peers of GTN*/
+			peers = HLConfigHelper.getPeers(thisOrg.getPeer(), client, config);
+			HyperledgerAPI.installChaincode(client, thisOrg.getPeerAdmin(), peers, chaincodeID);
+			
+			
+			/////////////////////////////////////////////////////////////////////////////////////////////////
+			//Then bring Elemica and DnB onto channel
+			//
+			
+			/* Add peers onto channel and install Chaincode */
+			List<Org> newChannelOrgs = Arrays.asList(config.getOrgDetailsByName(ORG_NAME_ELEMICA), config.getOrgDetailsByName(ORG_NAME_DNB));
+			for (Org org : newChannelOrgs) {
+				orderers = HLConfigHelper.getOrderers(org.getOrderer(), client, config);
+				peers = HLConfigHelper.getPeers(org.getPeer(), client, config);
+				eventHubs = HLConfigHelper.getEventHubs(org.getEventHub(), org.getEventHubNames(), client, config);
+				
+				HyperledgerAPI.addPeersOntoChannel(ch1, client, org.getPeerAdmin(), orderers, peers, eventHubs);
+				HyperledgerAPI.installChaincode(client, org.getPeerAdmin(), peers, chaincodeID);
+				//runChannelhelper.addPeersFromOrgOntoChannel(ch1, org.getPeer(), org.getPeerAdmin(), chaincodeID, client, config);
+			
 			}
 
-			/* Run the test for knowing how to use the API. */
+			/* Run the channel by using Hyperledger API */
 
 			////////////////////////////////////////////////
 			HyperledgerTestAPI.showPeersOnChannel(ch1);
@@ -130,33 +156,7 @@ public class ChannelUtilTest{
 		}
 	}
 	
-	@Test
-    public void createNoPeerChannel(){
-        HFClient client = HLConfigHelper.getHyperledgerFabricClient();
-        try {
-            Channel channel = client.newChannel("No_Peer_Channel");
-            Collection<Peer> peers = channel.getPeers();
-            assertEquals(peers.size(), 0);
-        } catch (InvalidArgumentException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Test @Ignore
-    public void createChannelWithDynamicPeer(){
-        HFClient client = HLConfigHelper.getHyperledgerFabricClient();
-        try {
-            Channel channel = client.newChannel("Dynamic_Channel");
-            Collection<Peer> peers = channel.getPeers();
-            assertEquals(peers.size(), 0);
-            
-            
-        } catch (InvalidArgumentException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-    }
-
+	
 	static void out(String format, Object... args) {
 		System.err.flush();
 		System.out.flush();
@@ -164,4 +164,5 @@ public class ChannelUtilTest{
 		System.err.flush();
 		System.out.flush();
 	}
+	
 }

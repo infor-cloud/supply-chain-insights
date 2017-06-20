@@ -53,9 +53,7 @@ type identifierData struct{
 
 
 func ( t *SimpleChaincode) Init (stub shim.ChaincodeStubInterface) pb.Response {
-	fmt.Println("##### INIT CC #####")
-	
-	
+	fmt.Println("##### INIT CC ####");
 	return shim.Success(nil)
 }
 
@@ -63,62 +61,61 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response{
 	fmt.Println("########## example_cc Invoke #########")
 	function, args := stub.GetFunctionAndParameters()
 
+	if(function != "invoke"){
+		return shim.Error("unknown function call");
+	}
+
 	if len(args) < 1 {
 		return shim.Error("Incorrect number of arguments. Expecting at least 1")
 	}
 	
-	if function == "delete" {
+	if args[0] == "delete" {
 		return t.delete(stub, args)
 	}
 	
-	if function == "query"{
+	if args[0] == "query"{
 		return t.query(stub, args)
 	}
 	
-	if function == "modify"{
+	if args[0] == "modify"{
 		return t.modify (stub, args)
 	}
 	
-	if function == "add" {
+	if args[0] == "add" {
 		return t.add (stub, args)	
 	}
 	
-	return shim.Error(function)
+	return shim.Error("unknown action, must be of add,modify,query or delete")
 }
 
 func (t *SimpleChaincode) add (stub shim.ChaincodeStubInterface, args[] string) pb.Response{
-	if len(args) != 2 {
-		return shim.Error ("Incorrect numbeer of arguments. Expecting 2")	
+	if len(args) != 3 {
+		return shim.Error ("Incorrect numbeer of arguments. Expecting 3")	
 	}
 	
-	//var tradingpartner TradingPartner
 	var key string
-	//var trade string
 	var err error
 	
 	//Initialize the Chaincode
-	key = args[0]
-	//json.Unmarshal([]byte(args[1]), &tradingpartner)
-	buf, err := json.Marshal(args[1])
+	key = args[1]
+	buf, err := json.Marshal(args[2])
 	//json.Unmarshal(buf, &trade)
-	
-	fmt.Printf(args[1])
 	err = stub.PutState(key, buf)
 	if (err != nil){
 		return shim.Error(err.Error())
 	}	
 	
-	return shim.Success(buf)
+	return shim.Success(nil)
 }
 
 
 
 func (t *SimpleChaincode) delete (stub shim.ChaincodeStubInterface, args[] string) pb.Response{
-	if len(args) != 1 {
-		return shim.Error ("Incorrect number of arguments. Expecting 1")
+	if len(args) != 2 {
+		return shim.Error ("Incorrect number of arguments. Expecting 2")
 	}
 	
-	key := args[0]
+	key := args[1]
 	
 	err := stub.DelState(key)
 	if err != nil {
@@ -130,43 +127,39 @@ func (t *SimpleChaincode) delete (stub shim.ChaincodeStubInterface, args[] strin
 
 func (t *SimpleChaincode) query (stub shim.ChaincodeStubInterface, args []string) pb.Response{
 	var key string
-	//trade :=  TradingPartner{}
+	trade :=  TradingPartner{}
 	var err error
-	if  len(args) != 1	 {
+	if  len(args) != 2	 {
 		return shim.Error ("Incorrect number of arguments. Expecting name of the person to query")
 	}
-	key = args[0]
+	key = args[1]
 	
 	tradingpartner, err := stub.GetState(key)
+	fmt.Println("Printing tradingpartner[byte]:")
+	fmt.Println(string(tradingpartner))
+
 	if err != nil {
 			jsonResp := "{\"Error\":\"Failed to get state for " + key + "\"}"
 			return shim.Error(jsonResp)
 	}
-	if tradingpartner == nil {
-		jsonResp := "{\"Error\":\"Nil amount for " + key + "\"}"
-		return shim.Error(jsonResp)
-	}
-	json.Unmarshal([]byte(tradingpartner), &t)
+	json.Unmarshal([]byte(tradingpartner), &trade)
 	
+	fmt.Println("Printing trade[value]:")
+	fmt.Println(trade)
 	
-	//fmt.Printf("%+v", tradingpartner)
 	return shim.Success(tradingpartner)
 }
 
 func (t *SimpleChaincode) modify (stub shim.ChaincodeStubInterface, args []string) pb.Response{
 	var key string
-	
-	//var tradingpartner TradingPartner
 	var err error
 	
-	if len(args) != 2{
+	if len(args) != 3{
 		return shim.Error ("Incorrect number of arguments, expecting name of person and serialized TradingPartner")
 	}
 	
-	key = args[0]
-	trade, err := json.Marshal(args[1])
-	//tradingpartner = trade
-	
+	key = args[1]
+	trade, err := json.Marshal(args[2])
 	err = stub.PutState(key, trade)
 	if(err != nil) {
 		return shim.Error(err.Error())

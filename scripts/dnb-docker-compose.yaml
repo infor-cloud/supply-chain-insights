@@ -1,0 +1,60 @@
+version: '2'
+
+services:
+  ca2:
+    image: hyperledger/fabric-ca${IMAGE_TAG_FABRIC_CA}
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+    ports:
+      - "9054:7054"
+    command: sh -c 'fabric-ca-server start --ca.certfile /etc/hyperledger/fabric-ca-server-config/ca.dnb.example.com-cert.pem --ca.keyfile /etc/hyperledger/fabric-ca-server-config/d0499a3b9cceb3c37bffb647ddeb6ad21e4b45de8b9077564de9f97bc190678a_sk -b admin:adminpw ${ORG_HYPERLEDGER_FABRIC_SDKTEST_INTEGRATIONTESTS_CA_TLS} --tls.certfile /etc/hyperledger/fabric-ca-server-config/ca.dnb.example.com-cert.pem --tls.keyfile /etc/hyperledger/fabric-ca-server-config/d0499a3b9cceb3c37bffb647ddeb6ad21e4b45de8b9077564de9f97bc190678a_sk -d'
+    volumes:
+      - ../crypto-config/peerOrganizations/dnb.example.com/ca/:/etc/hyperledger/fabric-ca-server-config:ro
+    container_name: ca_peerDnB
+  
+
+  peer0.dnb.example.com:
+    container_name: peer0.dnb.example.com
+    extends:
+      file: ./peer-base/peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer0.dnb.example.com
+      - CORE_PEER_ADDRESS=peer0.dnb.example.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.dnb.example.com:9051
+#      - CORE_PEER_GOSSIP_ORGLEADER=true
+      - CORE_PEER_LOCALMSPID=dnbMSP
+    volumes:
+      - /var/run/:/host/var/run/
+      - ./../crypto-config/peerOrganizations/dnb.example.com/peers/peer0.dnb.example.com/:/etc/hyperledger/msp/peer:ro
+    ports:
+      - 9051:7051
+      - 9053:7053
+    
+  peer1.dnb.example.com:
+    container_name: peer1.dnb.example.com
+    extends:
+      file: ./peer-base/peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer1.dnb.example.com
+      - CORE_PEER_ADDRESS=peer1.dnb.example.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.dnb.example.com:9051
+#      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.dnb.example.com:8051
+      - CORE_PEER_LOCALMSPID=dnbMSP
+    volumes:
+         - /var/run/:/host/var/run/
+         - ./../crypto-config/peerOrganizations/dnb.example.com/peers/peer1.dnb.example.com/:/etc/hyperledger/msp/peer:ro
+    ports:
+       - 9056:7051
+       - 9058:7053
+    depends_on:
+       - peer0.dnb.example.com
+  
+  
+  
+  
+  ccenv:
+    image: hyperledger/fabric-ccenv${IMAGE_TAG_FABRIC}
+    
+  
