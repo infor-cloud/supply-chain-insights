@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
@@ -34,6 +35,10 @@ import org.hyperledger.fabric.sdk.User;
 import org.hyperledger.fabric.sdk.exception.ChaincodeEndorsementPolicyParseException;
 import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
 import org.hyperledger.fabric.sdk.exception.ProposalException;
+import org.hyperledger.fabric.sdk.exception.TransactionException;
+import org.non.config.HLConfiguration;
+import org.non.config.Org;
+import org.non.config.PeerDetails;
 
 
 /*A class of higher level function calls using Hyperledger Java API.*/
@@ -44,78 +49,71 @@ public class HyperledgerAPI {
 	private static int PROPOSALWAITTIME = 150000;
 	private static int DEPLOYWAITTIME = 140000;
 
-	/*Construct the channel with one org by passing it's peerAdmin, orderers, peers and eventHubs*/
-	 public static Channel constructChannelwithOneOrg(String name, HFClient client, User peerAdmin, 
-			 List<Orderer> orderers, List<Peer> peersFromOrg, List<EventHub> eventHubsFromOrg, 
-			 String channelConfigFilePath) throws Exception {
+	/* Construct the channel with a list of orgs */
+	public static Channel constructChannel(String name, HFClient client, List<Org> orgs, Orderer orderer,
+			String channelConfigFilePath, HLConfiguration config) throws IOException, InvalidArgumentException, TransactionException, ProposalException {
+		// Can change to take a list of orderers
 
-	        logger.info("Constructing channel " + name);
+		logger.info("Constructing channel " + name);
 
+		// Take the only orderer in our case to create the channel.
+		Collection<Orderer> orderers = new LinkedList<>();
+		orderers.add(orderer);
 
-	        //Only peer Admin org
-	        client.setUserContext(peerAdmin);
+		ChannelConfiguration channelConfiguration = new ChannelConfiguration(new File(channelConfigFilePath));
 
-	        //Just pick the first orderer in the list to create the channel.
+		boolean firstOrgOnboard = true;
+		Channel newChannel = null;
 
-	        Orderer anOrderer = orderers.iterator().next();
-	        orderers.remove(anOrderer);
+		for (Org thisOrg : orgs) {
+			client.setUserContext(thisOrg.getPeerAdmin());
+			if (firstOrgOnboard) {
+				newChannel = client.newChannel(name, orderer, channelConfiguration,
+						client.getChannelConfigurationSignature(channelConfiguration, thisOrg.getPeerAdmin()));
+				logger.info("Created channel %s " + name);
+				firstOrgOnboard = false;
+			}
 
-	        ChannelConfiguration channelConfiguration = new ChannelConfiguration(new File(channelConfigFilePath));
+			/* Add peers from orgs onto channel */
+			List<PeerDetails> peerDetails = thisOrg.getPeer();
+			for (PeerDetails thisPeerDetail : peerDetails) {
+				String peerName = thisPeerDetail.getName();
+				String peerLocation = thisPeerDetail.getLocation();
 
-	        //Create channel that has only one signer that is this orgs peer admin. If channel creation policy needed more signature they would need to be added too.
-	        Channel newChannel = client.newChannel(name, anOrderer, channelConfiguration, client.getChannelConfigurationSignature(channelConfiguration, peerAdmin));
+				Properties peerProperties = config.getPeerProperties(peerName);
+				if (peerProperties == null) {
+					peerProperties = new Properties();
+				}
+				// Example of setting specific options on grpc's
+				// ManagedChannelBuilder
+				peerProperties.put("grpc.ManagedChannelBuilderOption.maxInboundMessageSize", 9000000);
 
-	        logger.info("Created channel " + name);
+				Peer peer = client.newPeer(peerName, peerLocation, peerProperties);
+				newChannel.joinPeer(peer);
+				logger.info("Peer " + peerName + " joined channel " + name);
+				// thisOrg.addPeer(peer);
+			}
 
-	        for (Peer peer : peersFromOrg) {
-	            newChannel.joinPeer(peer);
-	            logger.info("Peer " + peer.getName() + " joined channel " + name);
-	        }
+			/* Add EventHubs from orgs onto channel */
 
-	        for (Orderer orderer : orderers) { //add remaining orderers if any.
-	            newChannel.addOrderer(orderer);
-	            logger.info("Orderer " + orderer.getName() + " joined channel " + name);
-	        }
+			Map<String, String> eventHubDetails = thisOrg.getEventHub();
+			for (String eventHubName : thisOrg.getEventHubNames()) {
+				EventHub eventHub = client.newEventHub(eventHubName, eventHubDetails.get(eventHubName),
+						config.getEventHubProperties(eventHubName));
+				newChannel.addEventHub(eventHub);
+			}
 
-	        for (EventHub eventHub : eventHubsFromOrg) {
-	            newChannel.addEventHub(eventHub);
-	            logger.info("EventHub " + eventHub.getName() +" joined channel " + name);
-	        }
+			/* Parse Configblock, Load CAcerts, Connect EventHubs */
+			newChannel.initialize();
+		}
 
-	        newChannel.initialize();
-	        logger.info("Finished initialization channel " + name);
+		// Add remaining orderers onto newChannel before return if any.
 
-	        return newChannel;
+		logger.info("Finished initialization channel " + name);
 
-	    }
-	 
-	 public static void addPeersOntoChannel(Channel channel, HFClient client, User peerAdmin, 
-			 List<Orderer> orderers, List<Peer> peersFromOrg, List<EventHub> eventHubsFromOrg) throws Exception {
-		 
-		 	client.setUserContext(peerAdmin);
-		 	logger.info("Adding peers onto channel" + channel.getName());
-
-	        for (Peer peer : peersFromOrg) {
-	            channel.joinPeer(peer);
-	            logger.info("Peer " +  peer.getName() + " joined channel " + channel.getName());
-	            
-	        }
-
-//	        for (Orderer orderer : orderers) {
-//	            channel.addOrderer(orderer);
-//	            out("Orderer %s joined channel %s", orderer.getName(), channel.getName());
-//	        }
-
-//	        for (EventHub eventHub : eventHubsFromOrg) {
-//	            channel.addEventHub(eventHub);
-//	            out("EventHub %s joined channel %s", eventHub.getName(), channel.getName());
-//	        }
-
-	        
-	        logger.info("Finished adding peers onto channel " + channel.getName());
-
-		 
-	 }
+		return newChannel;
+	}
+	
 
 	/* Install the chaincode after constructing the channel and before running the channel */
 	public static void installChaincode(HFClient client, User peerAdmin, List<Peer> peerList, ChaincodeID chaincodeID) 
@@ -252,6 +250,11 @@ public class HyperledgerAPI {
 		transactionProposalRequest.setTransientMap(tm2);
 
 		logger.info("sending transactionProposal to all peers with arguments " + args[0] + " " + args[1]);
+		
+		/*
+		 * We have the assumption that all the peers on this channel have to endorse the transaction proposal
+		 * for calling invoke methods which may modify the state of world. 
+		 */
 		Collection<ProposalResponse> transactionPropResp = channel.sendTransactionProposal(transactionProposalRequest,
 				channel.getPeers());
 		for (ProposalResponse response : transactionPropResp) {
@@ -281,7 +284,7 @@ public class HyperledgerAPI {
 	 * Send query proposal to all peers. Must provide key of data
 	 * instance(trading partner)
 	 */
-	public static String query(User user, HFClient client, ChaincodeID chaincodeID, Channel channel,
+	public static String query(User user, HFClient client, ChaincodeID chaincodeID,Channel channel,
 			String key) throws ProposalException, InvalidArgumentException {
 		Set<String> payloadSet = new HashSet<>();
 
@@ -300,8 +303,12 @@ public class HyperledgerAPI {
 		tm2.put("method", "QueryByChaincodeRequest".getBytes(UTF_8));
 		queryByChaincodeRequest.setTransientMap(tm2);
 
-		// Can make it only query by org
 
+		/*
+		 * We assume that we only need to ask the peers of this user's org
+		 * for querying a piece of data. But we keep the codes sending the proposal to
+		 * all the peers on channel for now before figuring out more details about it.
+		 */
 		Collection<ProposalResponse> queryProposals = channel.queryByChaincode(queryByChaincodeRequest,
 				channel.getPeers());
 

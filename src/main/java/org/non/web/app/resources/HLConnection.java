@@ -3,14 +3,11 @@ package org.non.web.app.resources;
 import static java.lang.String.format;
 import static org.junit.Assert.fail;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
+import java.util.stream.Collectors;
 
 import org.hyperledger.fabric.sdk.ChaincodeID;
 import org.hyperledger.fabric.sdk.Channel;
-import org.hyperledger.fabric.sdk.EventHub;
 import org.hyperledger.fabric.sdk.HFClient;
 import org.hyperledger.fabric.sdk.Orderer;
 import org.hyperledger.fabric.sdk.Peer;
@@ -20,6 +17,7 @@ import org.non.api.model.TradingPartner;
 import org.non.config.ChannelDetails;
 import org.non.config.HLConfiguration;
 import org.non.config.Org;
+import org.non.config.PeerDetails;
 
 public class HLConnection {
 	private String ORG_NAME_GTN = "GTN";
@@ -59,40 +57,31 @@ public class HLConnection {
 		client = HLConfigHelper.getHyperledgerFabricClient();
 		config = HLConfigHelper.getHyperledgerFabricConfig();
 		ChannelDetails channelDetails = config.getChannelDetails("ch1");
+		List<Org> channelorgs = config.getOrgsOnChannel("ch1");
 		String channelTxFilePath = channelDetails.getTransactionFilePath();
 		chainCodeID = ChaincodeID.newBuilder().setName(CHAIN_CODE_NAME).setVersion(CHAIN_CODE_VERSION)
 				.setPath(CHAIN_CODE_PATH).build();
 		
 		try {
-			/* Take only org GTN to construct the channel */
+			/* Construct Channel */
 			Org thisOrg = config.getOrgDetailsByName(ORG_NAME_GTN);
 			client.setUserContext(thisOrg.getPeerAdmin());
-			
-			/* Take ordererDetails to create object of orderers */
 			List<Orderer> orderers = HLConfigHelper.getOrderers(thisOrg.getOrderer(), client, config);
-			
-			/* Take peerDetails to create object of peers */
-			List<Peer> peers = HLConfigHelper.getPeers(thisOrg.getPeer(), client, config);
-			
-			/*Take eventHubDetails to create object of eventHubs*/
-			List<EventHub> eventHubs = HLConfigHelper.getEventHubs(thisOrg.getEventHub(), thisOrg.getEventHubNames(), client, config);
-			
-			//////////////////////////////////////////////////////////////////////////////////////////////////
-			/* Construct Channel by org GTN*/
-			
-			Channel ch1 = HyperledgerAPI.constructChannelwithOneOrg("ch1", client, thisOrg.getPeerAdmin(), orderers, peers,
-					eventHubs, channelTxFilePath);
-			
+			Channel ch1 = HyperledgerAPI.constructChannel("ch1", client, channelorgs, orderers.get(0),
+					channelTxFilePath, config);
 
+			/* ChainCode Configuration */
 			ChaincodeID chaincodeID = ChaincodeID.newBuilder().setName(CHAIN_CODE_NAME).setVersion(CHAIN_CODE_VERSION)
 					.setPath(CHAIN_CODE_PATH).build();
-			
-			/* Install Chaincode on peers of GTN*/
-			peers = HLConfigHelper.getPeers(thisOrg.getPeer(), client, config);
-			HyperledgerAPI.installChaincode(client, thisOrg.getPeerAdmin(), peers, chaincodeID);
-			HyperledgerAPI.initiateChaincode(client, chaincodeID,
-					ch1, "scripts/chaincodeendorsementpolicy.yaml");
 
+			/* Install Chaincode on peers*/
+			for (Org org : channelorgs) {
+				HyperledgerAPI.installChaincode(client, org.getPeerAdmin(), HLConfigHelper.getPeers(org.getPeer(), client, config), chaincodeID);
+			}
+			
+			/* Initiate Chaincode on peers on the channel*/
+			HyperledgerAPI.initiateChaincode(client, chaincodeID, ch1,"scripts/chaincodeendorsementpolicy.yaml");
+			
 			
 			out("That's all!");
 
@@ -142,8 +131,17 @@ public class HLConnection {
 
 		else {
 			out("Chain found for name: %s", channelName);
-			
-			String result = HyperledgerAPI.query(config.getOrgDetailsByName(orgName).getUserByName(userName), client, chainCodeID, ch, compName);
+
+			//org.non.config.Org to be updated with storing a list of peers
+			//List<Peer> orgPeers = HLConfigHelper.getPeers(config.getOrgDetailsByName(orgName).getPeer(), client, config);
+			List<Peer> orgPeers = 
+	                ch.getPeers()
+	                .stream()
+	                .filter(p-> p.getUrl().contains(config.getOrgDetailsByName(orgName).getDomain()))
+	                .collect(Collectors.toList());
+			//To be updated: pass the orgPeers instead of channel.getPeers()
+			String result = HyperledgerAPI.query(config.getOrgDetailsByName(orgName).getUserByName(userName), 
+					client, chainCodeID, ch, compName);
 			if (result.isEmpty())
 				return "ERROR: No trading partner exists for: " + compName;
 

@@ -1,6 +1,5 @@
-README.md
-
 GETTING THE PROJECTS
+
 1. Clone the project from:
 <insert our new github link here>
 2. Open up your preferred Java IDE (e.g, eclipse, IntelliJ,)

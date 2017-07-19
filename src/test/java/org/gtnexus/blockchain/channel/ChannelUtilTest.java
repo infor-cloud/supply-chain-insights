@@ -95,6 +95,7 @@ public class ChannelUtilTest{
 						out("Finished transaction with transaction id %s", invokeTransactionEvent.getTransactionID());
 						String payload = null;
 						try {
+//							List<Peer> orgPeers = HLConfigHelper.getPeers(config.getOrgDetailsByName(ORG_NAME_DNB).getPeer(), client, config);
 							payload = HyperledgerAPI.query(config.getOrgDetailsByName(ORG_NAME_DNB).getUserByName(TESTUSER_1_NAME),
 									client, chaincodeID, ch1, sampleKey);
 						} catch (Exception e) {

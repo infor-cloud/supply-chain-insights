@@ -70,7 +70,7 @@ public class ChannelUtilTest_AddPeers {
 			//////////////////////////////////////////////////////////////////////////////////////////////////
 			/* Construct Channel by org GTN*/
 			
-			Channel ch1 = HyperledgerAPI.constructChannelwithOneOrg("ch1", client, thisOrg.getPeerAdmin(), orderers, peers,
+			Channel ch1 = HyperledgerTestAPI.constructChannelwithOneOrg("ch1", client, thisOrg.getPeerAdmin(), orderers, peers,
 					eventHubs, channelDetails.getTransactionFilePath());
 
 			/* ChainCode Configuration */
@@ -93,7 +93,7 @@ public class ChannelUtilTest_AddPeers {
 				peers = HLConfigHelper.getPeers(org.getPeer(), client, config);
 				eventHubs = HLConfigHelper.getEventHubs(org.getEventHub(), org.getEventHubNames(), client, config);
 				
-				HyperledgerAPI.addPeersOntoChannel(ch1, client, org.getPeerAdmin(), orderers, peers, eventHubs);
+				HyperledgerTestAPI.addPeersOntoChannel(ch1, client, org.getPeerAdmin(), orderers, peers, eventHubs);
 				HyperledgerAPI.installChaincode(client, org.getPeerAdmin(), peers, chaincodeID);
 				//runChannelhelper.addPeersFromOrgOntoChannel(ch1, org.getPeer(), org.getPeerAdmin(), chaincodeID, client, config);
 			
@@ -121,6 +121,7 @@ public class ChannelUtilTest_AddPeers {
 						out("Finished transaction with transaction id %s", invokeTransactionEvent.getTransactionID());
 						String payload = null;
 						try {
+//							List<Peer> orgPeers = HLConfigHelper.getPeers(config.getOrgDetailsByName(ORG_NAME_DNB).getPeer(), client, config);
 							payload = HyperledgerAPI.query(config.getOrgDetailsByName(ORG_NAME_DNB).getUserByName(TESTUSER_1_NAME),
 									client, chaincodeID, ch1, sampleKey);
 						} catch (Exception e) {

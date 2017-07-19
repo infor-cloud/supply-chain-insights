@@ -18,6 +18,7 @@ import org.hyperledger.fabric.sdk.EventHub;
 import org.hyperledger.fabric.sdk.HFClient;
 import org.hyperledger.fabric.sdk.Orderer;
 import org.hyperledger.fabric.sdk.Peer;
+import org.hyperledger.fabric.sdk.User;
 import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
 import org.hyperledger.fabric.sdk.exception.ProposalException;
 import org.hyperledger.fabric.sdk.exception.TransactionException;
@@ -95,6 +96,78 @@ public class HyperledgerTestAPI {
 		return newChannel;
 	}
 	
+	/*Construct the channel with one org by passing it's peerAdmin, orderers, peers and eventHubs*/
+	 public static Channel constructChannelwithOneOrg(String name, HFClient client, User peerAdmin, 
+			 List<Orderer> orderers, List<Peer> peersFromOrg, List<EventHub> eventHubsFromOrg, 
+			 String channelConfigFilePath) throws Exception {
+
+	        logger.info("Constructing channel " + name);
+
+
+	        //Only peer Admin org
+	        client.setUserContext(peerAdmin);
+
+	        //Just pick the first orderer in the list to create the channel.
+
+	        Orderer anOrderer = orderers.iterator().next();
+	        orderers.remove(anOrderer);
+
+	        ChannelConfiguration channelConfiguration = new ChannelConfiguration(new File(channelConfigFilePath));
+
+	        //Create channel that has only one signer that is this orgs peer admin. If channel creation policy needed more signature they would need to be added too.
+	        Channel newChannel = client.newChannel(name, anOrderer, channelConfiguration, client.getChannelConfigurationSignature(channelConfiguration, peerAdmin));
+
+	        logger.info("Created channel " + name);
+
+	        for (Peer peer : peersFromOrg) {
+	            newChannel.joinPeer(peer);
+	            logger.info("Peer " + peer.getName() + " joined channel " + name);
+	        }
+
+	        for (Orderer orderer : orderers) { //add remaining orderers if any.
+	            newChannel.addOrderer(orderer);
+	            logger.info("Orderer " + orderer.getName() + " joined channel " + name);
+	        }
+
+	        for (EventHub eventHub : eventHubsFromOrg) {
+	            newChannel.addEventHub(eventHub);
+	            logger.info("EventHub " + eventHub.getName() +" joined channel " + name);
+	        }
+
+	        newChannel.initialize();
+	        logger.info("Finished initialization channel " + name);
+
+	        return newChannel;
+
+	    }
+	 
+	 public static void addPeersOntoChannel(Channel channel, HFClient client, User peerAdmin, 
+			 List<Orderer> orderers, List<Peer> peersFromOrg, List<EventHub> eventHubsFromOrg) throws Exception {
+		 
+		 	client.setUserContext(peerAdmin);
+		 	logger.info("Adding peers onto channel" + channel.getName());
+
+	        for (Peer peer : peersFromOrg) {
+	            channel.joinPeer(peer);
+	            logger.info("Peer " +  peer.getName() + " joined channel " + channel.getName());
+	            
+	        }
+
+//	        for (Orderer orderer : orderers) {
+//	            channel.addOrderer(orderer);
+//	            out("Orderer %s joined channel %s", orderer.getName(), channel.getName());
+//	        }
+
+//	        for (EventHub eventHub : eventHubsFromOrg) {
+//	            channel.addEventHub(eventHub);
+//	            out("EventHub %s joined channel %s", eventHub.getName(), channel.getName());
+//	        }
+
+	        
+	        logger.info("Finished adding peers onto channel " + channel.getName());
+
+		 
+	 }
 	public static void showPeersOnChannel(Channel channel) {
 		logger.info("Peers of channel " + channel.getName());
 		out("Peers of channel " + channel.getName());
