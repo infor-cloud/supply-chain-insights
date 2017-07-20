@@ -2,15 +2,15 @@ package org.non.config;
 
 import java.util.List;
 
-public class Config {
-	private List<Org> orgs;
+public class NetworkConfig {
+	private List<Organization> orgs;
 	private List<ChannelDetails> channelDetails;
 	
-	public void setOrgs(List<Org>orgs){
+	public void setOrgs(List<Organization>orgs){
 		this.orgs=orgs;
 	}
 	
-	public List<Org> getOrgs(){
+	public List<Organization> getOrgs(){
 		return this.orgs;
 	}
 	

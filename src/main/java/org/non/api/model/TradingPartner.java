@@ -5,6 +5,8 @@ import java.util.List;
 
 import javax.ws.rs.QueryParam;
 
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.core.JsonParseException;
@@ -17,6 +19,8 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
 public class TradingPartner {
 	@QueryParam("name")
 	private String name;
+	private static Logger logger = LogManager.getLogger(TradingPartner.class);
+	
 	public String getName() {
 		return name;
 	}
@@ -123,14 +127,11 @@ public class TradingPartner {
 		try {
 			idList = mapper.readValue(ids, TypeFactory.defaultInstance().constructCollectionType(List.class, Identifier.class));
 		} catch (JsonParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error(e.getMessage());;
 		} catch (JsonMappingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error(e.getMessage());;
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error(e.getMessage());;
 		}
 		System.out.println(idList.size());
 		for (Identifier i : idList){
@@ -163,8 +164,7 @@ public class TradingPartner {
 		try {
 			result = mapper.writeValueAsString(this);
 		} catch (JsonProcessingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error(e.getMessage());
 		}
 		return result;
 	}

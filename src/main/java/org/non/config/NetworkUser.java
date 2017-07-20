@@ -7,7 +7,7 @@ import org.hyperledger.fabric.sdk.User;
 
 import io.netty.util.internal.StringUtil;
 
-public class NonUser implements User{
+public class NetworkUser implements User{
 	private String name;
 	private String hostName;
 	private Set<String> roles;

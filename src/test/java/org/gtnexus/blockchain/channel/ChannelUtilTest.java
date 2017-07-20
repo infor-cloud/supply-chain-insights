@@ -27,7 +27,7 @@ import org.non.api.code.HyperledgerTestAPI;
 import org.non.config.ChannelDetails;
 import org.non.config.HLConfiguration;
 import org.non.config.OrdererDetails;
-import org.non.config.Org;
+import org.non.config.Organization;
 import org.non.api.code.HLConfigHelper;
 
 public class ChannelUtilTest{
@@ -51,10 +51,10 @@ public class ChannelUtilTest{
 		HLConfiguration config = HLConfigHelper.getHyperledgerFabricConfig();
 		
 		ChannelDetails channelDetails = config.getChannelDetails("ch1");
-		List<Org> channelorgs = config.getOrgsOnChannel("ch1");
+		List<Organization> channelorgs = config.getOrgsOnChannel("ch1");
 
 		try {
-			Org thisOrg = channelorgs.get(0);
+			Organization thisOrg = channelorgs.get(0);
 			List<OrdererDetails> ordererDetails = thisOrg.getOrderer();
 			client.setUserContext(thisOrg.getPeerAdmin());
 			Orderer thisOrderer = client.newOrderer(ordererDetails.get(0).getName(),
@@ -69,7 +69,7 @@ public class ChannelUtilTest{
 					.setPath(CHAIN_CODE_PATH).build();
 
 			/* Install Chaincode */
-			for (Org org : channelorgs) {
+			for (Organization org : channelorgs) {
 				HyperledgerAPI.installChaincode(client, org.getPeerAdmin(), HLConfigHelper.getPeers(org.getPeer(), client, config), chaincodeID);
 			}
 
@@ -153,8 +153,7 @@ public class ChannelUtilTest{
             
             
         } catch (InvalidArgumentException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+           
         }
     }
 

@@ -23,7 +23,7 @@ import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
 import org.hyperledger.fabric.sdk.exception.ProposalException;
 import org.hyperledger.fabric.sdk.exception.TransactionException;
 import org.non.config.HLConfiguration;
-import org.non.config.Org;
+import org.non.config.Organization;
 import org.non.config.PeerDetails;
 
 
@@ -32,7 +32,7 @@ public class HyperledgerTestAPI {
 	private static Logger logger = LogManager.getLogger(HyperledgerAPI.class);
 	
 	/* Construct the channel with a list of orgs */
-	public static Channel constructChannel(String name, HFClient client, List<Org> orgs, Orderer orderer,
+	public static Channel constructChannel(String name, HFClient client, List<Organization> orgs, Orderer orderer,
 			String channelConfigFilePath, HLConfiguration config) throws IOException, InvalidArgumentException, TransactionException, ProposalException {
 		// Can change to take a list of orderers
 
@@ -47,7 +47,7 @@ public class HyperledgerTestAPI {
 		boolean firstOrgOnboard = true;
 		Channel newChannel = null;
 
-		for (Org thisOrg : orgs) {
+		for (Organization thisOrg : orgs) {
 			client.setUserContext(thisOrg.getPeerAdmin());
 			if (firstOrgOnboard) {
 				newChannel = client.newChannel(name, orderer, channelConfiguration,

@@ -21,16 +21,12 @@ import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
 import org.hyperledger.fabric.sdk.exception.TransactionEventException;
 
 import org.junit.Test;
-//import org.non.BaseTestCase;
 import org.non.api.code.HyperledgerAPI;
 import org.non.api.code.HyperledgerTestAPI;
 import org.non.api.code.HLConfigHelper;
 import org.non.config.ChannelDetails;
 import org.non.config.HLConfiguration;
-import org.non.config.NonUser;
-import org.non.config.OrdererDetails;
-import org.non.config.Org;
-import org.non.config.PeerDetails;
+import org.non.config.Organization;
 
 public class ChannelUtilTest_AddPeers {
 
@@ -55,7 +51,7 @@ public class ChannelUtilTest_AddPeers {
 		ChannelDetails channelDetails = config.getChannelDetails("ch1");
 		try {
 			/* Take only org GTN to construct the channel */
-			Org thisOrg = config.getOrgDetailsByName(ORG_NAME_GTN);
+			Organization thisOrg = config.getOrgDetailsByName(ORG_NAME_GTN);
 			client.setUserContext(thisOrg.getPeerAdmin());
 			
 			/* Take ordererDetails to create object of orderers */
@@ -87,8 +83,8 @@ public class ChannelUtilTest_AddPeers {
 			//
 			
 			/* Add peers onto channel and install Chaincode */
-			List<Org> newChannelOrgs = Arrays.asList(config.getOrgDetailsByName(ORG_NAME_ELEMICA), config.getOrgDetailsByName(ORG_NAME_DNB));
-			for (Org org : newChannelOrgs) {
+			List<Organization> newChannelOrgs = Arrays.asList(config.getOrgDetailsByName(ORG_NAME_ELEMICA), config.getOrgDetailsByName(ORG_NAME_DNB));
+			for (Organization org : newChannelOrgs) {
 				orderers = HLConfigHelper.getOrderers(org.getOrderer(), client, config);
 				peers = HLConfigHelper.getPeers(org.getPeer(), client, config);
 				eventHubs = HLConfigHelper.getEventHubs(org.getEventHub(), org.getEventHubNames(), client, config);

@@ -1,7 +1,6 @@
 package org.non.api.code;
 
 import static java.lang.String.format;
-import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -21,6 +20,8 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMParser;
@@ -30,25 +31,25 @@ import org.hyperledger.fabric.sdk.EventHub;
 import org.hyperledger.fabric.sdk.HFClient;
 import org.hyperledger.fabric.sdk.Orderer;
 import org.hyperledger.fabric.sdk.Peer;
-import org.hyperledger.fabric.sdk.exception.CryptoException;
 import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
 import org.hyperledger.fabric.sdk.security.CryptoSuite;
 import org.hyperledger.fabric_ca.sdk.HFCAClient;
 import org.hyperledger.fabric_ca.sdk.RegistrationRequest;
-//import org.non.BaseTestCase.SampleStoreEnrollement;
 import org.non.config.HLConfiguration;
-import org.non.config.NonUser;
+import org.non.config.NetworkUser;
 import org.non.config.OrdererDetails;
-import org.non.config.Org;
+import org.non.config.Organization;
 import org.non.config.PeerDetails;
 
 /*This class is for reading the information of orgs and channel to do the configuration*/
 public class HLConfigHelper {
 	protected static HFClient client;
 	protected static HLConfiguration config;
-	private final static String CONFIG_PROPERTIES_FILE_PATH = "scripts/config/config_properties.yml";
+	private final static String CONFIG_PROPERTIES_FILE_PATH = "scripts/config/networkConfig_properties.yml";
 	protected static String TESTUSER_1_NAME = "User1";
 	protected static String TEST_ADMIN_NAME = "admin";
+	private static Logger logger = LogManager.getLogger(HLConfigHelper.class);
+
 
 	static {
 		buildRegistry();
@@ -63,13 +64,13 @@ public class HLConfigHelper {
 			client.setCryptoSuite(CryptoSuite.Factory.getCryptoSuite());
 
 			/* Load all the configuration for each org. */
-			for (Org thisOrg : config.getAllOrgsWithDetails()) {
+			for (Organization thisOrg : config.getAllOrgsWithDetails()) {
 
 				HFCAClient ca = thisOrg.getCA().getCAClient();
 				final String mspid = thisOrg.getMsp().getId();
 				ca.setCryptoSuite(CryptoSuite.Factory.getCryptoSuite());
 
-				NonUser admin = thisOrg.getUserByName(TEST_ADMIN_NAME);
+				NetworkUser admin = thisOrg.getUserByName(TEST_ADMIN_NAME);
 				if (!admin.isEnrolled()) { // *Preregistered admin only needs to
 											// be enrolled with Fabric caClient.
 					admin.setEnrollment(ca.enroll(admin.getName(), "adminpw"));
@@ -77,7 +78,7 @@ public class HLConfigHelper {
 				}
 				thisOrg.setAdmin(admin); // The admin of this org
 
-				NonUser user = thisOrg.getUserByName(TESTUSER_1_NAME);
+				NetworkUser user = thisOrg.getUserByName(TESTUSER_1_NAME);
 				if (!user.isRegistered()) { // users need to be registered AND
 											// enrolled
 					RegistrationRequest rr = new RegistrationRequest(user.getName(), "org1.department1");
@@ -93,7 +94,7 @@ public class HLConfigHelper {
 				final String thisOrgDomainName = thisOrg.getDomain();
 
 				// To be checked. Maybe we don't need this part.
-				NonUser peerOrgAdmin = thisOrg.getUserByName("admin");
+				NetworkUser peerOrgAdmin = thisOrg.getUserByName("admin");
 				File certificateFile = Paths.get("crypto-config/peerOrganizations/", thisOrgDomainName,
 						format("/users/Admin@%s/msp/signcerts/Admin@%s-cert.pem", thisOrgDomainName, thisOrgDomainName))
 						.toFile();
@@ -116,9 +117,7 @@ public class HLConfigHelper {
 				thisOrg.setPeerAdmin(peerOrgAdmin);
 			}
 		} catch (Exception e) {
-			// e.printStackTrace();
-
-			fail(e.getMessage());
+			logger.error(e.getMessage());
 		}
 	}
 	

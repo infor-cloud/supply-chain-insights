@@ -1,6 +1,5 @@
 package org.non.api.code;
 
-import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.io.File;
@@ -37,9 +36,8 @@ import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
 import org.hyperledger.fabric.sdk.exception.ProposalException;
 import org.hyperledger.fabric.sdk.exception.TransactionException;
 import org.non.config.HLConfiguration;
-import org.non.config.Org;
+import org.non.config.Organization;
 import org.non.config.PeerDetails;
-
 
 /*A class of higher level function calls using Hyperledger Java API.*/
 public class HyperledgerAPI {
@@ -50,8 +48,9 @@ public class HyperledgerAPI {
 	private static int DEPLOYWAITTIME = 140000;
 
 	/* Construct the channel with a list of orgs */
-	public static Channel constructChannel(String name, HFClient client, List<Org> orgs, Orderer orderer,
-			String channelConfigFilePath, HLConfiguration config) throws IOException, InvalidArgumentException, TransactionException, ProposalException {
+	public static Channel constructChannel(String name, HFClient client, List<Organization> orgs, Orderer orderer,
+			String channelConfigFilePath, HLConfiguration config)
+			throws IOException, InvalidArgumentException, TransactionException, ProposalException {
 		// Can change to take a list of orderers
 
 		logger.info("Constructing channel " + name);
@@ -65,7 +64,7 @@ public class HyperledgerAPI {
 		boolean firstOrgOnboard = true;
 		Channel newChannel = null;
 
-		for (Org thisOrg : orgs) {
+		for (Organization thisOrg : orgs) {
 			client.setUserContext(thisOrg.getPeerAdmin());
 			if (firstOrgOnboard) {
 				newChannel = client.newChannel(name, orderer, channelConfiguration,
@@ -113,10 +112,12 @@ public class HyperledgerAPI {
 
 		return newChannel;
 	}
-	
 
-	/* Install the chaincode after constructing the channel and before running the channel */
-	public static void installChaincode(HFClient client, User peerAdmin, List<Peer> peerList, ChaincodeID chaincodeID) 
+	/*
+	 * Install the chaincode after constructing the channel and before running
+	 * the channel
+	 */
+	public static void installChaincode(HFClient client, User peerAdmin, List<Peer> peerList, ChaincodeID chaincodeID)
 			throws InvalidArgumentException, IOException, ProposalException {
 		Collection<ProposalResponse> responses;
 		Collection<ProposalResponse> successful = new LinkedList<>();
@@ -142,7 +143,7 @@ public class HyperledgerAPI {
 		int numInstallProposal = 0;
 
 		Set<Peer> peersFromOrg = new HashSet<Peer>(peerList);
-		
+
 		numInstallProposal = numInstallProposal + peersFromOrg.size();
 		responses = client.sendInstallProposal(installProposalRequest, peersFromOrg);
 
@@ -215,7 +216,7 @@ public class HyperledgerAPI {
 			throw new RuntimeException("Not enough endorsers for instantiate :" + successful.size()
 					+ "endorser failed with " + first.getMessage() + ". Was verified:" + first.isVerified());
 		}
-		
+
 		Collection<Orderer> orderers = channel.getOrderers();
 		logger.info("Sending instantiateTransaction to orderer.");
 		return channel.sendTransaction(successful, orderers);
@@ -250,10 +251,11 @@ public class HyperledgerAPI {
 		transactionProposalRequest.setTransientMap(tm2);
 
 		logger.info("sending transactionProposal to all peers with arguments " + args[0] + " " + args[1]);
-		
+
 		/*
-		 * We have the assumption that all the peers on this channel have to endorse the transaction proposal
-		 * for calling invoke methods which may modify the state of world. 
+		 * We have the assumption that all the peers on this channel have to
+		 * endorse the transaction proposal for calling invoke methods which may
+		 * modify the state of world.
 		 */
 		Collection<ProposalResponse> transactionPropResp = channel.sendTransactionProposal(transactionProposalRequest,
 				channel.getPeers());
@@ -284,8 +286,8 @@ public class HyperledgerAPI {
 	 * Send query proposal to all peers. Must provide key of data
 	 * instance(trading partner)
 	 */
-	public static String query(User user, HFClient client, ChaincodeID chaincodeID,Channel channel,
-			String key) throws ProposalException, InvalidArgumentException {
+	public static String query(User user, HFClient client, ChaincodeID chaincodeID, Channel channel, String key)
+			throws ProposalException, InvalidArgumentException {
 		Set<String> payloadSet = new HashSet<>();
 
 		////////////////////////////
@@ -303,11 +305,11 @@ public class HyperledgerAPI {
 		tm2.put("method", "QueryByChaincodeRequest".getBytes(UTF_8));
 		queryByChaincodeRequest.setTransientMap(tm2);
 
-
 		/*
-		 * We assume that we only need to ask the peers of this user's org
-		 * for querying a piece of data. But we keep the codes sending the proposal to
-		 * all the peers on channel for now before figuring out more details about it.
+		 * We assume that we only need to ask the peers of this user's org for
+		 * querying a piece of data. But we keep the codes sending the proposal
+		 * to all the peers on channel for now before figuring out more details
+		 * about it.
 		 */
 		Collection<ProposalResponse> queryProposals = channel.queryByChaincode(queryByChaincodeRequest,
 				channel.getPeers());
@@ -332,5 +334,4 @@ public class HyperledgerAPI {
 		}
 	}
 
-	
 }

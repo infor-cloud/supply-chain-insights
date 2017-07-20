@@ -1,4 +1,33 @@
 ---
+################################################################################
+#
+#   Profile
+#
+#   - Different configuration profiles may be encoded here to be specified
+#   as parameters to the configtxgen tool
+#
+################################################################################
+Profiles:
+
+    ThreeOrgsOrdererGenesis:
+        Orderer:
+            <<: *OrdererDefaults
+            Organizations:
+                - *OrdererOrg
+        Consortiums:
+            SampleConsortium:
+                Organizations:
+                    - *gtn
+                    - *elemica
+                    - *dnb
+    ThreeOrgsChannel:
+        Consortium: SampleConsortium
+        Application:
+            <<: *ApplicationDefaults
+            Organizations:
+                - *gtn
+                - *elemica
+                - *dnb
 
 ################################################################################
 #
@@ -23,17 +52,7 @@ Organizations:
         # MSPDir is the filesystem path which contains the MSP configuration
         MSPDir: ./../../crypto-config/ordererOrganizations/example.com/msp
 
-        # BCCSP (Blockchain crypto provider): Select which crypto implementation or
-        # library to use
-        BCCSP:
-            Default: SW
-            SW:
-                Hash: SHA2
-                Security: 256
-                # Location of Key Store. If this is unset, a location will
-                # be chosen using 'MSPDir'/keystore
-                FileKeyStore:
-                    KeyStore:
+        
 
     - &gtn
         # DefaultOrg defines the organization which is used in the sampleconfig
@@ -43,19 +62,7 @@ Organizations:
         # ID to load the MSP definition as
         ID: gtnMSP
 
-        MSPDir: ./../../crypto-config/peerOrganizations/gtn.example.com/msp
-
-        # BCCSP (Blockchain crypto provider): Select which crypto implementation or
-        # library to use
-        BCCSP:
-            Default: SW
-            SW:
-                Hash: SHA2
-                Security: 256
-                # Location of Key Store. If this is unset, a location will
-                # be chosen using 'MSPDir'/keystore
-                FileKeyStore:
-                    KeyStore:
+        MSPDir: ./../../crypto-config/peerOrganizations/gtn.example.com/msp      
 
         AnchorPeers:
             # AnchorPeers defines the location of peers which can be used
@@ -74,18 +81,6 @@ Organizations:
 
         MSPDir: ./../../crypto-config/peerOrganizations/elemica.example.com/msp
 
-        # BCCSP (Blockchain crypto provider): Select which crypto implementation or
-        # library to use
-        BCCSP:
-            Default: SW
-            SW:
-                Hash: SHA2
-                Security: 256
-                # Location of Key Store. If this is unset, a location will
-                # be chosen using 'MSPDir'/keystore
-                FileKeyStore:
-                    KeyStore:
-
         AnchorPeers:
             # AnchorPeers defines the location of peers which can be used
             # for cross org gossip communication.  Note, this value is only
@@ -102,18 +97,6 @@ Organizations:
         ID: dnbMSP
 
         MSPDir: ./../../crypto-config/peerOrganizations/dnb.example.com/msp
-
-        # BCCSP (Blockchain crypto provider): Select which crypto implementation or
-        # library to use
-        BCCSP:
-            Default: SW
-            SW:
-                Hash: SHA2
-                Security: 256
-                # Location of Key Store. If this is unset, a location will
-                # be chosen using 'MSPDir'/keystore
-                FileKeyStore:
-                    KeyStore:
 
         AnchorPeers:
             # AnchorPeers defines the location of peers which can be used
@@ -181,32 +164,3 @@ Application: &ApplicationDefaults
     # Organizations is the list of orgs which are defined as participants on
     # the application side of the network
     Organizations:
-################################################################################
-#
-#   Profile
-#
-#   - Different configuration profiles may be encoded here to be specified
-#   as parameters to the configtxgen tool
-#
-################################################################################
-Profiles:
-
-    ThreeOrgsOrdererGenesis:
-        Orderer:
-            <<: *OrdererDefaults
-            Organizations:
-                - *OrdererOrg
-        Consortiums:
-            SampleConsortium:
-                Organizations:
-                    - *gtn
-                    - *elemica
-                    - *dnb
-    ThreeOrgsChannel:
-        Consortium: SampleConsortium
-        Application:
-            <<: *ApplicationDefaults
-            Organizations:
-                - *gtn
-                - *elemica
-                - *dnb

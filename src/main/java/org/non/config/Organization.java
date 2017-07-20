@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class Org {
+public class Organization {
 	private String name;
 	private String domain;
 	private MspDetails msp;
@@ -16,9 +16,9 @@ public class Org {
 	private List<OrdererDetails> orderer;
 	private Map<String,String> eventHub;
 	private CaDetails ca;
-	private List<NonUser> users;
-	private NonUser admin;
-	private NonUser peerAdmin;
+	private List<NetworkUser> users;
+	private NetworkUser admin;
+	private NetworkUser peerAdmin;
 	
 	public void setName(String name){
 		this.name=name;
@@ -93,28 +93,28 @@ public class Org {
 		return this.ca;
 	}
 	
-	public void setUsers(List<NonUser>users){
+	public void setUsers(List<NetworkUser>users){
 		this.users=users;
 	}
 	
-	public List<NonUser> getUsers(){
+	public List<NetworkUser> getUsers(){
 		return this.users;
 	}
 	
-	public NonUser getAdmin() {
+	public NetworkUser getAdmin() {
         return admin;
     }
 
-    public void setAdmin(NonUser admin) {
+    public void setAdmin(NetworkUser admin) {
         this.admin = admin;
     }
 
 	
-	public NonUser getUserByName(String userName){
-		NonUser user=null;
+	public NetworkUser getUserByName(String userName){
+		NetworkUser user=null;
 		try
 		{
-			user=this.users.stream().filter(p->p.getName().equals(userName)).collect(Collectors.<NonUser> toList()).get(0);
+			user=this.users.stream().filter(p->p.getName().equals(userName)).collect(Collectors.<NetworkUser> toList()).get(0);
 		}
 		catch(Exception e){
 			user=null;
@@ -122,15 +122,15 @@ public class Org {
 		return user;
 	}
 	
-	public void addUser(NonUser user) {
+	public void addUser(NetworkUser user) {
         this.users.add(user);
     }
 
-	public void setPeerAdmin(NonUser peerAdmin) {
+	public void setPeerAdmin(NetworkUser peerAdmin) {
         this.peerAdmin = peerAdmin;
     }
 
-	public NonUser getPeerAdmin(){
+	public NetworkUser getPeerAdmin(){
 		return this.peerAdmin;
 	}
 	
