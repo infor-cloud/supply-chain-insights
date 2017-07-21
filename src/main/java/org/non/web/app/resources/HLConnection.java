@@ -1,8 +1,7 @@
 package org.non.web.app.resources;
 
-import static java.lang.String.format;
 import java.util.List;
-import java.util.stream.Collectors;
+//import java.util.stream.Collectors;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -10,7 +9,7 @@ import org.hyperledger.fabric.sdk.ChaincodeID;
 import org.hyperledger.fabric.sdk.Channel;
 import org.hyperledger.fabric.sdk.HFClient;
 import org.hyperledger.fabric.sdk.Orderer;
-import org.hyperledger.fabric.sdk.Peer;
+//import org.hyperledger.fabric.sdk.Peer;
 import org.non.api.code.HyperledgerAPI;
 import org.non.api.code.HLConfigHelper;
 import org.non.api.model.TradingPartner;
@@ -81,7 +80,7 @@ public class HLConnection {
 			/* Initiate Chaincode on peers on the channel */
 			HyperledgerAPI.initiateChaincode(client, chaincodeID, ch1, "scripts/chaincodeendorsementpolicy.yaml");
 
-			out("That's all!");
+			logger.info("That's all!");
 
 		} catch (Exception e) {
 			logger.error(e.getMessage());
@@ -97,11 +96,16 @@ public class HLConnection {
 
 	public String createPartner(String orgName, String userName, String channelName, TradingPartner tradingPartner)
 			throws Exception {
+		logger.info("Got Request to add a new Trading Partner");
+		/* Get the channel specified from the UI */
 		Channel ch = client.getChannel(channelName.toLowerCase());
+		
+		/* Convert the trading partner into something readable by the chaincode */
 		String tradeString = tradingPartner.toJSONString();
 
+		/* Make sure the information provided exists for this channel*/
 		if (ch == null) {
-			out("No channel exists for channel name: %s", channelName);
+			logger.info("No channel exists for channel name: %s" + channelName);
 			return ("ERROR: No channel exists for channel name " + channelName);
 		} else if (tradeString == null) {
 			System.out.println("Error parsing the Trading Partner to a string");
@@ -110,6 +114,8 @@ public class HLConnection {
 
 		else {
 			String args[] = { "add", tradingPartner.getName(), tradeString };
+			
+			/* Send transaction to HyperledgerAPI to properly format the proposal request*/
 			HyperledgerAPI.invoke(args, config.getOrgDetailsByName(orgName).getUserByName(userName), client,
 					chainCodeID, ch);
 			return ("SUCCESS");
@@ -119,24 +125,27 @@ public class HLConnection {
 
 	public String getTradingPartner(String orgName, String userName, String channelName, String compName)
 			throws Exception {
-		out("Got Request to Query a trading Partner");
+		logger.info("Got Request to Query a Trading Partner");
+		
+		/* Get the channel specified from the UI*/
 		Channel ch = client.getChannel(channelName.toLowerCase());
 		if (ch == null) {
-			out("No channel exist for channel name: %s", channelName);
+			logger.info("No channel exist for channel name: %s" + channelName);
 			return ("ERROR: No Channel Exists for: " + channelName);
 		}
 
 		else {
-			out("Chain found for name: %s", channelName);
+			logger.info("Chain found for name: %s" + channelName);
 
 			// org.non.config.Org to be updated with storing a list of peers
-			// List<Peer> orgPeers =
-			// HLConfigHelper.getPeers(config.getOrgDetailsByName(orgName).getPeer(),
-			// client, config);
-			List<Peer> orgPeers = ch.getPeers().stream()
-					.filter(p -> p.getUrl().contains(config.getOrgDetailsByName(orgName).getDomain()))
-					.collect(Collectors.toList());
-			// To be updated: pass the orgPeers instead of channel.getPeers()
+//
+//			List<Peer> orgPeers = ch.getPeers().stream()
+//					.filter(p -> p.getUrl().contains(config.getOrgDetailsByName(orgName).getDomain()))
+//					.collect(Collectors.toList());
+//			// To be updated: pass the orgPeers instead of channel.getPeers()
+			
+			
+			/* Send the channel info and name of the partner to find to HyperledgerAPI to format a proposal */
 			String result = HyperledgerAPI.query(config.getOrgDetailsByName(orgName).getUserByName(userName), client,
 					chainCodeID, ch, compName);
 			if (result.isEmpty())
@@ -146,12 +155,5 @@ public class HLConnection {
 		}
 	}
 
-	static void out(String format, Object... args) {
-		System.err.flush();
-		System.out.flush();
-		System.out.println(format(format, args));
-		System.err.flush();
-		System.out.flush();
-	}
 
 }

@@ -2,74 +2,136 @@
 <html>
 <head>
 
-  <script
-  src="https://code.jquery.com/jquery-3.2.1.min.js"
-  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
-  crossorigin="anonymous"></script>
-  
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+  <script src="http://cdn.cloudwall.me/1.2/general.js"></script>
 
-<script src="http://cdn.cloudwall.me/1.2/general.js"></script>
-
-  <script
-  src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
-  integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
-  crossorigin="anonymous"></script>	
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>	
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.1.4/js.cookie.js"></script>
   
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" >
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.11.1/bootstrap-table.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
   
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.1.4/js.cookie.js"></script>
   
   
 <meta charset="ISO-8859-1">
 <title> Creating a Trading Partner </title>
 </head>
+<style>
+.take-all-space-you-can{
+    width:50%;
+}
+.btn-circle {
+  width: 30px;
+  height: 30px;
+  text-align: center;
+  padding: 6px 0;
+  font-size: 12px;
+  line-height: 1.428571429;
+  border-radius: 15px;
+}
+</style>
 <body>
+
+
+<ul class="nav nav-tabs">
+  <li role="presentation"class="take-all-space-you-can"><a href="./sessionProfile.html">My Profile</a></li>
+  <li role="presentation"class="active take-all-space-you-can"><a href="./search.html">Trading Partners</a></li>
+</ul>
+
+  <button id="goBack" class="btn btn-link">&lt;&lt;Go Back</button>
+
 	<p> </p>
-  Company Information:	<br>
-  Name:			<input type="text" id="name"><br>			
-  Website URI:	<input type="text" id="websiteURI"><br><br><br>
-
-
-  <div id="AddressContainer">
-  Address:		<br>
-  Street Name:	<input type="text" id="streetName"><br>
-  City Name		<input type="text" id="cityName"><br>
-  Postal Zone 	<input type="text" id="postalZone"><br>
+	<form>
+<h2 style="margin-left:1%"> Creating a Trading Partner</h2>
+  <div class="col-xs-4 ">
+    <label for="NameLabel">&emsp;Partner Name</label>
+    <input type="text" class="form-control " id="name" placeholder="Big Corporation">
+   </div>
+   
+   
+   <br><br><br>
+   
+   
+<div class="col-xs-4 ">
+    <label for="WebsiteLabel">&emsp;Website URI</label>
+    <input type="text" class="form-control" id="websiteURI" placeholder="www.big.co">
+    </div>
+    
+    
+       <br><br>   <br>
+       
+       
+<div class="col-xs-4 ">
+    <label for="AddressLabel">&emsp;Address</label>
+    <input type="text" class="form-control" id="streetName" placeholder="Street Name">
   </div>
+</form>
 
-  <br><br>
 
-  <div id="ContactContainer">
-  Contact: 		<br>
-  Name:			<input type="text" id="contactName"><br>
-  E-mail:		<input type="text" id="contactEmail"><br>
-  Telephone		<input type="text" id="contactTelephone"><br><br>
-  </div> 
- 
-  <div id="IDContainer">
-  Identifiers: <br>
-  Scheme Name &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ID
+<br><br><br>
+
+
+<form class="form-inline">
+   <div class="form-group ">
+    <label class="sr-only" for="cityNameLabel">City Name</label>
+    <input type="text" class="form-control" id="cityName" placeholder="City Name"style="margin-left:8%;width:188px">
+  </div>
+  
+  <div class="form-group">
+    <label class="sr-only"for="postalZoneLabel">Postal Zone</label>
+    <input type="text" class="form-control" id="postalZone" placeholder="Postal Zone"style="margin-left:6%">
+  </div>
+  
+  
+  
   <br>
-    <div id="list">
-	  <div class="row br2">
-	    <span class="fi-list"></span> 
-	    <input id="schemeName" type="text" class="w180">
-	    <input id="id" type="text"class="w170">
-	    <span class="fi-x red o50 pl5"></span>
-	  </div>
-	</div>
-	<input id="btn-add" type="button" value="Add Identifier" class="mt10"><br>
-   </div><br><br>
- 
+</form>
+   <div class="col-xs-4 ">
+    <label for="contactNameLabel">&emsp;Contact Name</label>
+    <input type="text" class="form-control " id="contactName" placeholder="Jeffrey Doe">
+   </div>
+   
+   <br><br><br>
+   
+<div class="col-xs-4 ">
+    <label for="contactEmailLabel">&emsp;Contact Email</label>
+    <input type="text" class="form-control" id="contactEmail" placeholder="jeffrey.doe@company.com">
+    </div>
+    	
+       <br><br>   <br>
+       
+<div class="col-xs-4 ">
+    <label for="contactTelephoneLabel">&emsp;Contact Telephone</label>
+    <input type="text" class="form-control" id="contactTelephone" placeholder="12223334444">
+</div>
+
+	<br><br><br>
+  	<div id="IDContainer">
+	  <label for="contactNameLabel" style="margin-left:2%">&emsp;Identifier</label> <br>
+	  &emsp;&emsp; Scheme Name &emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp;&nbsp; ID
+	  <br>
+	    <div id="list">
+		  <div class="row br2">
+		    <span class="fi-list"></span> 
+		    <input id="schemeName" type="text" class="w180">
+		    <input id="id" type="text"class="w170">
+		    <span class="fi-x red o50 pl5"></span>
+		  </div>
+		</div>
+		<input id="btn-add" type="button" value="Add Identifier" class="mt10 btn btn-default" style="margin-left:2%"><br>
+	   </div><br><br>
   
-  
-  <button id="create" class="float-left submit-button">Create </button>
-  <button id="goBack" class="float-left submit-button">Go Back</button>
+  <button id="create" class="btn btn-primary"style="margin-left:2%; margin-bottom:3%">Create </button>
+
 
    <script type="text/javascript">
    var identifier = {
 		list: {}
    }
    
+
    
 // Manifest
    var manifest = {
@@ -88,9 +150,8 @@
 		       if (null != val) this.my.insert("#list", {});
 		     }
 		   },
-		   style:{
-		     " #list>div":"width:400px; border-bottom:1px dotted #aaa;"
-		         +"padding:5px 0 10px 0;margin:5px 0;"
+		   style: {
+			   " #list>div": "padding:5px 0 10px 0;margin-left:2%;"
 		   },
 		   UserForm:{
 		     ui:{
@@ -122,6 +183,40 @@
 	   return false;
    }
    
+   var i = 1;
+   function dropdown(val, num) {
+	   var y = $("#table" +n);
+	   var aNode = y[0].innerHTML = val; // Append 
+	 }
+   
+   var $table = $('#idTable');
+
+   $('table').on('click','.delete',function(){
+	   $(this).parents('tr').remove();
+   });
+   var idArray = [];
+
+   $('table').on('click','.add',function(){
+		$('#idTable').append('<tr> <td class="schemeName"> <div class="form-group "> <input type="text" class="form-control" id="scheme" style="margin-top:5%;margin-bottom:5%" placeholder="Scheme Name" > </div> </td> <td class="customerID"> <div class="form-group "> <input type="text" class="form-control" id="id" style="margin-top:5%;margin-bottom:5%" placeholder="111-222-333" > </div> </td> <td> <button type="button" class="btn btn-danger btn-circle delete" id="remove"><i class="glyphicon glyphicon-remove"></i></button> </td> </tr> ');
+		$('#idTable').append('<tr> <td> <div> <button type="button" class="btn btn-default add" id="AddIDS1">New Identifier</button> </div> </td> </tr>')
+	    $(this).parents('tr').remove();
+	   
+	    var rows = $('#idTable > tbody > tr')
+	    rows.each(function(index){
+	    	if (index < rows.length-1 && true && index >= 0) {
+		    	var schemey = $(this).find(".schemeName").find("input");
+		    	var idy = $(this).find(".customerID").find("input");
+ 		    	alert(index + " " + schemey.val());
+		    	alert(index + " " + idy.val());
+		    	var obj = {};
+		    	obj[schemey] = idy;
+		    	idArray.push(obj);
+		    	$('h2').append("Hi" + JSON.stringify(idArray[0][schemey]));
+		    	
+	    	}
+	    })
+	   
+   })
    function disableButtons() {
 	   $("#goBack").prop('disabled', true);
 	   $("#create").prop('disabled', true);
@@ -133,7 +228,6 @@
 	   $("#create").prop('disabled', false);
 	   $("#btn-add").prop('disabled', false);
    }
-   
    $(function() {
 	    $("#btn-add").trigger("click");
 	});
@@ -141,7 +235,7 @@
    $("#IDContainer").my( manifest, identifier);
    
    $("#goBack").click(function(){
-	   location.href="./index.html"
+	   location.href="./search.html"
    })
    $("#create").click(function() {
 	   disableButtons()
@@ -160,8 +254,8 @@
 				url: "http://localhost:8080/fabric/create",
 				dataType: "json",
 				success: function(data) {
-					alert("Added successfully! Returning to Index")
-					location.href="./index.html"
+					Cookies.set('added', 'true',  {domain: '', path: ''})
+					location.href="./search.html"
 				},
 				error : function(data) {
 					$("#error").remove();
@@ -180,7 +274,6 @@
 					contactEmail: 		$("#contactEmail").val(),
 					contactTelephone: 	$("#contactTelephone").val(),
 					identifier: 		JSON.stringify(identifier.users),
-					address: 			JSON.stringify($("cityName").val()),
 					userName: 			Cookies.get('userName'),
 					orgName: 			Cookies.get('orgName'),
 					channelName: 		Cookies.get('channelName'),
