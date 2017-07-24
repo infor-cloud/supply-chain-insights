@@ -16,7 +16,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.IOUtils;
@@ -60,9 +59,9 @@ public class HLConfigHelper {
 		config = new HLConfiguration();
 
 		try {
-			config.load(CONFIG_PROPERTIES_FILE_PATH);
 			client.setCryptoSuite(CryptoSuite.Factory.getCryptoSuite());
-
+			config.load(CONFIG_PROPERTIES_FILE_PATH);
+			
 			/* Load all the configuration for each org. */
 			for (Organization thisOrg : config.getAllOrgsWithDetails()) {
 
@@ -111,10 +110,14 @@ public class HLConfigHelper {
 				peerOrgAdmin.setEnrollment(new SampleStoreEnrollement(privateKey, certificate));
 
 				/*
-				 * A special user that can crate channels, join peers and
+				 * A special user that can create channels, join peers and
 				 * install chain code
 				 */
 				thisOrg.setPeerAdmin(peerOrgAdmin);
+				client.setUserContext(peerOrgAdmin);
+				thisOrg.setPeers(getPeersFromPeerDetails(thisOrg.getPeerDetails()));
+				thisOrg.setOrderer(getOrdererFromOrdererDetails(thisOrg.getOrdererDetails()));
+				thisOrg.setEventHub(getEventHubsFromEventHubMap(thisOrg.getEventHubMap()));
 			}
 		} catch (Exception e) {
 			logger.error(e.getMessage());
@@ -122,8 +125,7 @@ public class HLConfigHelper {
 	}
 	
 
-	public static List<Orderer> getOrderers(List<OrdererDetails> ordererDetails, HFClient client,
-			HLConfiguration config) throws InvalidArgumentException {
+	public static List<Orderer> getOrdererFromOrdererDetails(List<OrdererDetails> ordererDetails) throws InvalidArgumentException {
 		List<Orderer> orderers = new LinkedList<Orderer>();
 		for (OrdererDetails od : ordererDetails) {
 			Properties ordererProperties = config.getOrdererProperties(od.getName());
@@ -143,7 +145,7 @@ public class HLConfigHelper {
 		return orderers;
 	}
 
-	public static List<Peer> getPeers(List<PeerDetails> peerDetails, HFClient client, HLConfiguration config)
+	public static List<Peer> getPeersFromPeerDetails(List<PeerDetails> peerDetails)
 			throws InvalidArgumentException {
 		List<Peer> peers = new LinkedList<Peer>();
 		for (PeerDetails thisPeerDetail : peerDetails) {
@@ -164,11 +166,10 @@ public class HLConfigHelper {
 		return peers;
 	}
 
-	public static List<EventHub> getEventHubs(Map<String, String> eventHubDetails, Set<String> eventHubNames,
-			HFClient client, HLConfiguration config) throws InvalidArgumentException {
+	public static List<EventHub> getEventHubsFromEventHubMap(Map<String, String> eventHubMap) throws InvalidArgumentException {
 		List<EventHub> eventHubs = new LinkedList<EventHub>();
-		for (String eventHubName : eventHubNames) {
-			EventHub eventHub = client.newEventHub(eventHubName, eventHubDetails.get(eventHubName),
+		for (String eventHubName : eventHubMap.keySet()) {
+			EventHub eventHub = client.newEventHub(eventHubName, eventHubMap.get(eventHubName),
 					config.getEventHubProperties(eventHubName));
 			eventHubs.add(eventHub);
 		}

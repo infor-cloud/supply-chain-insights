@@ -10,7 +10,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
@@ -37,7 +36,6 @@ import org.hyperledger.fabric.sdk.exception.ProposalException;
 import org.hyperledger.fabric.sdk.exception.TransactionException;
 import org.non.config.HLConfiguration;
 import org.non.config.Organization;
-import org.non.config.PeerDetails;
 
 /*A class of higher level function calls using Hyperledger Java API.*/
 public class HyperledgerAPI {
@@ -74,31 +72,15 @@ public class HyperledgerAPI {
 			}
 
 			/* Add peers from orgs onto channel */
-			List<PeerDetails> peerDetails = thisOrg.getPeer();
-			for (PeerDetails thisPeerDetail : peerDetails) {
-				String peerName = thisPeerDetail.getName();
-				String peerLocation = thisPeerDetail.getLocation();
-
-				Properties peerProperties = config.getPeerProperties(peerName);
-				if (peerProperties == null) {
-					peerProperties = new Properties();
-				}
-				// Example of setting specific options on grpc's
-				// ManagedChannelBuilder
-				peerProperties.put("grpc.ManagedChannelBuilderOption.maxInboundMessageSize", 9000000);
-
-				Peer peer = client.newPeer(peerName, peerLocation, peerProperties);
-				newChannel.joinPeer(peer);
-				logger.info("Peer " + peerName + " joined channel " + name);
-				// thisOrg.addPeer(peer);
+			List<Peer> peers = thisOrg.getPeers();
+			for (Peer peer : peers) {
+				newChannel.joinPeer(peer);				
 			}
 
 			/* Add EventHubs from orgs onto channel */
 
-			Map<String, String> eventHubDetails = thisOrg.getEventHub();
-			for (String eventHubName : thisOrg.getEventHubNames()) {
-				EventHub eventHub = client.newEventHub(eventHubName, eventHubDetails.get(eventHubName),
-						config.getEventHubProperties(eventHubName));
+			List<EventHub> eventHubs = thisOrg.getEventHub();
+			for (EventHub eventHub : eventHubs) {
 				newChannel.addEventHub(eventHub);
 			}
 
@@ -286,7 +268,7 @@ public class HyperledgerAPI {
 	 * Send query proposal to all peers. Must provide key of data
 	 * instance(trading partner)
 	 */
-	public static String query(User user, HFClient client, ChaincodeID chaincodeID, Channel channel, String key)
+	public static String query(User user, HFClient client, ChaincodeID chaincodeID, Channel channel, String key, List<Peer> peers)
 			throws ProposalException, InvalidArgumentException {
 		Set<String> payloadSet = new HashSet<>();
 
@@ -312,7 +294,7 @@ public class HyperledgerAPI {
 		 * about it.
 		 */
 		Collection<ProposalResponse> queryProposals = channel.queryByChaincode(queryByChaincodeRequest,
-				channel.getPeers());
+				peers);
 
 		for (ProposalResponse proposalResponse : queryProposals) {
 			if (!proposalResponse.isVerified() || proposalResponse.getStatus() != ProposalResponse.Status.SUCCESS) {

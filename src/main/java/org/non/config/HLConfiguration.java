@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.hyperledger.fabric.sdk.Peer;
 import org.hyperledger.fabric_ca.sdk.HFCAClient;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -135,8 +136,8 @@ public class HLConfiguration {
 	 * 
 	 * @param orgName : name of org
 	 */
-	public List<PeerDetails> getPeersByOrg(String orgName) {
-		return getOrgDetailsByName(orgName).getPeer();
+	public List<Peer> getPeersByOrg(String orgName) {
+		return getOrgDetailsByName(orgName).getPeers();
 	}
 
 	public Properties getPeerProperties(String name) {

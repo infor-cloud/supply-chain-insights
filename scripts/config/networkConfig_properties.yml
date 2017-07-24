@@ -6,26 +6,24 @@
             name: gtnMSP
             id: gtnMSP
 
-        peer:
+        peerDetails:
             - name : peer0.gtn.example.com
-              containerName: peer0.gtn.example.com
               location: grpc://localhost:7051
         
             - name : peer1.gtn.example.com
-              containerName: peer1.gtn.example.com
               location: grpc://localhost:7056
         
         anchorPeers:
             - host: peer0.gtn.example.com
               port: 7051
 
-        orderer:
+        ordererDetails:
             - orgName: Orderer
               domain: example.com
               name: orderer.example.com
               location: grpc://localhost:7050
         
-        eventHub:
+        eventHubMap:
             peer0.gtn.example.com: grpc://localhost:7053
             
             peer1.gtn.example.com: grpc://localhost:7058
@@ -52,26 +50,24 @@
             name: elemicaMSP
             id: elemicaMSP
 
-        peer:
+        peerDetails:
             - name : peer0.elemica.example.com
-              containerName: peer0.elemica.example.com
               location: grpc://localhost:8051
         
             - name : peer1.elemica.example.com
-              containerName: peer1.elemica.example.com
               location: grpc://localhost:8056
         
         anchorPeers:
             - host: peer0.elemica.example.com
               port: 7051
 
-        orderer:
+        ordererDetails:
             - orgName: Orderer
               domain: example.com
               name: orderer.example.com
               location: grpc://localhost:7050
         
-        eventHub:
+        eventHubMap:
             peer0.elemica.example.com: grpc://localhost:8053
             
             peer1.elemica.example.com: grpc://localhost:8058
@@ -99,26 +95,24 @@
             name: dnbMSP
             id: dnbMSP
 
-        peer:
+        peerDetails:
             - name : peer0.dnb.example.com
-              containerName: peer0.dnb.example.com
               location: grpc://localhost:9051
         
             - name : peer1.dnb.example.com
-              containerName: peer1.dnb.example.com
               location: grpc://localhost:9056
         
         anchorPeers:
             - host: peer0.dnb.example.com
               port: 7051
 
-        orderer:
+        ordererDetails:
             - orgName: Orderer
               domain: example.com
               name: orderer.example.com
               location: grpc://localhost:7050
         
-        eventHub:
+        eventHubMap:
             peer0.dnb.example.com: grpc://localhost:9053
             peer1.dnb.example.com: grpc://localhost:9058
         

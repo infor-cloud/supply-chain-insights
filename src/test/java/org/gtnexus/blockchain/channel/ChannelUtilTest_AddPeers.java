@@ -55,13 +55,13 @@ public class ChannelUtilTest_AddPeers {
 			client.setUserContext(thisOrg.getPeerAdmin());
 			
 			/* Take ordererDetails to create object of orderers */
-			List<Orderer> orderers = HLConfigHelper.getOrderers(thisOrg.getOrderer(), client, config);
+			List<Orderer> orderers = thisOrg.getOrderer();
 			
 			/* Take peerDetails to create object of peers */
-			List<Peer> peers = HLConfigHelper.getPeers(thisOrg.getPeer(), client, config);
+			List<Peer> peers=thisOrg.getPeers();
 			
 			/*Take eventHubDetails to create object of eventHubs*/
-			List<EventHub> eventHubs = HLConfigHelper.getEventHubs(thisOrg.getEventHub(), thisOrg.getEventHubNames(), client, config);
+			List<EventHub> eventHubs = thisOrg.getEventHub();
 			
 			//////////////////////////////////////////////////////////////////////////////////////////////////
 			/* Construct Channel by org GTN*/
@@ -74,7 +74,7 @@ public class ChannelUtilTest_AddPeers {
 					.setPath(CHAIN_CODE_PATH).build();
 			
 			/* Install Chaincode on peers of GTN*/
-			peers = HLConfigHelper.getPeers(thisOrg.getPeer(), client, config);
+			peers = thisOrg.getPeers();
 			HyperledgerAPI.installChaincode(client, thisOrg.getPeerAdmin(), peers, chaincodeID);
 			
 			
@@ -85,13 +85,12 @@ public class ChannelUtilTest_AddPeers {
 			/* Add peers onto channel and install Chaincode */
 			List<Organization> newChannelOrgs = Arrays.asList(config.getOrgDetailsByName(ORG_NAME_ELEMICA), config.getOrgDetailsByName(ORG_NAME_DNB));
 			for (Organization org : newChannelOrgs) {
-				orderers = HLConfigHelper.getOrderers(org.getOrderer(), client, config);
-				peers = HLConfigHelper.getPeers(org.getPeer(), client, config);
-				eventHubs = HLConfigHelper.getEventHubs(org.getEventHub(), org.getEventHubNames(), client, config);
+				orderers = org.getOrderer();
+				peers = org.getPeers();
+				eventHubs = org.getEventHub();
 				
 				HyperledgerTestAPI.addPeersOntoChannel(ch1, client, org.getPeerAdmin(), orderers, peers, eventHubs);
 				HyperledgerAPI.installChaincode(client, org.getPeerAdmin(), peers, chaincodeID);
-				//runChannelhelper.addPeersFromOrgOntoChannel(ch1, org.getPeer(), org.getPeerAdmin(), chaincodeID, client, config);
 			
 			}
 
@@ -117,9 +116,9 @@ public class ChannelUtilTest_AddPeers {
 						out("Finished transaction with transaction id %s", invokeTransactionEvent.getTransactionID());
 						String payload = null;
 						try {
-//							List<Peer> orgPeers = HLConfigHelper.getPeers(config.getOrgDetailsByName(ORG_NAME_DNB).getPeer(), client, config);
-							payload = HyperledgerAPI.query(config.getOrgDetailsByName(ORG_NAME_DNB).getUserByName(TESTUSER_1_NAME),
-									client, chaincodeID, ch1, sampleKey);
+							Organization org=config.getOrgDetailsByName(ORG_NAME_DNB);
+							payload = HyperledgerAPI.query(org.getUserByName(TESTUSER_1_NAME),
+									client, chaincodeID, ch1, sampleKey,org.getPeers());
 						} catch (Exception e) {
 							e.printStackTrace();
 						}

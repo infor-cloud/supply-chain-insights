@@ -1,17 +1,19 @@
 package org.non.web.app.resources;
 
+import static java.lang.String.format;
+
 import java.util.List;
-//import java.util.stream.Collectors;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.hyperledger.fabric.protos.common.Common.Block;
 import org.hyperledger.fabric.sdk.ChaincodeID;
 import org.hyperledger.fabric.sdk.Channel;
 import org.hyperledger.fabric.sdk.HFClient;
 import org.hyperledger.fabric.sdk.Orderer;
-//import org.hyperledger.fabric.sdk.Peer;
-import org.non.api.code.HyperledgerAPI;
+import org.hyperledger.fabric.sdk.Peer;
 import org.non.api.code.HLConfigHelper;
+import org.non.api.code.HyperledgerAPI;
 import org.non.api.model.TradingPartner;
 import org.non.config.ChannelDetails;
 import org.non.config.HLConfiguration;
@@ -25,6 +27,7 @@ public class HLConnection {
 	private String CHAIN_CODE_PATH = "github.com/myCC";
 	private String CHAIN_CODE_VERSION = "1";
 	private ChaincodeID chainCodeID;
+	//private Block block;
 	private static HLConnection hlconnection;
 	private HFClient client;
 	private HLConfiguration config;
@@ -63,9 +66,10 @@ public class HLConnection {
 			/* Construct Channel */
 			Organization thisOrg = config.getOrgDetailsByName(ORG_NAME_GTN);
 			client.setUserContext(thisOrg.getPeerAdmin());
-			List<Orderer> orderers = HLConfigHelper.getOrderers(thisOrg.getOrderer(), client, config);
+			List<Orderer> orderers = thisOrg.getOrderer();
 			Channel ch1 = HyperledgerAPI.constructChannel("ch1", client, channelorgs, orderers.get(0),
 					channelTxFilePath, config);
+			//block=ch1.queryBlockByNumber(0).getBlock();
 
 			/* ChainCode Configuration */
 			ChaincodeID chaincodeID = ChaincodeID.newBuilder().setName(CHAIN_CODE_NAME).setVersion(CHAIN_CODE_VERSION)
@@ -74,7 +78,7 @@ public class HLConnection {
 			/* Install Chaincode on peers */
 			for (Organization org : channelorgs) {
 				HyperledgerAPI.installChaincode(client, org.getPeerAdmin(),
-						HLConfigHelper.getPeers(org.getPeer(), client, config), chaincodeID);
+						org.getPeers(), chaincodeID);
 			}
 
 			/* Initiate Chaincode on peers on the channel */
@@ -92,7 +96,11 @@ public class HLConnection {
 			hlconnection = new HLConnection();
 		}
 		return hlconnection;
-	}
+    }
+	
+//	public Block getBlock(){
+//		return block;
+//	}
 
 	public String createPartner(String orgName, String userName, String channelName, TradingPartner tradingPartner)
 			throws Exception {
@@ -138,16 +146,9 @@ public class HLConnection {
 			logger.info("Chain found for name: %s" + channelName);
 
 			// org.non.config.Org to be updated with storing a list of peers
-//
-//			List<Peer> orgPeers = ch.getPeers().stream()
-//					.filter(p -> p.getUrl().contains(config.getOrgDetailsByName(orgName).getDomain()))
-//					.collect(Collectors.toList());
-//			// To be updated: pass the orgPeers instead of channel.getPeers()
-			
-			
-			/* Send the channel info and name of the partner to find to HyperledgerAPI to format a proposal */
+			List<Peer> orgPeers=config.getOrgDetailsByName(orgName).getPeers();			
 			String result = HyperledgerAPI.query(config.getOrgDetailsByName(orgName).getUserByName(userName), client,
-					chainCodeID, ch, compName);
+					chainCodeID, ch, compName,orgPeers);
 			if (result.isEmpty())
 				return "ERROR: No trading partner exists for: " + compName;
 

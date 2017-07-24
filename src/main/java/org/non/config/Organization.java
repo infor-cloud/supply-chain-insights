@@ -7,14 +7,21 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.hyperledger.fabric.sdk.EventHub;
+import org.hyperledger.fabric.sdk.Orderer;
+import org.hyperledger.fabric.sdk.Peer;
+
 public class Organization {
 	private String name;
 	private String domain;
 	private MspDetails msp;
-	private List<PeerDetails> peer;
+	private List<PeerDetails> peerDetails;
+	private List<Peer> peers;	
 	private List<AnchorPeerDetails> anchorPeers;
-	private List<OrdererDetails> orderer;
-	private Map<String,String> eventHub;
+	private List<OrdererDetails> ordererDetails;
+	private Map<String,String> eventHubMap;
+	private List<Orderer> orderer;
+	private List<EventHub> eventHub;
 	private CaDetails ca;
 	private List<NetworkUser> users;
 	private NetworkUser admin;
@@ -44,12 +51,12 @@ public class Organization {
 		return this.msp;
 	}
 	
-	public void setPeer(List<PeerDetails>peer){
-		this.peer=peer;
+	public void setPeerDetails(List<PeerDetails>peer){
+		this.peerDetails=peer;
 	}
 	
-	public List<PeerDetails> getPeer(){
-		return this.peer;
+	public List<PeerDetails> getPeerDetails(){
+		return this.peerDetails;
 	}
 	
 	public void setAnchorPeer(List<AnchorPeerDetails> anchorPeers){
@@ -60,28 +67,28 @@ public class Organization {
 		return this.anchorPeers;
 	}
 	
-	public void setOrderer(List<OrdererDetails> orderer){
-		this.orderer=orderer;
+	public void setOrdererDetails(List<OrdererDetails> orderer){
+		this.ordererDetails=orderer;
 	}
 	
-	public List<OrdererDetails> getOrderer(){
-		return this.orderer;
+	public List<OrdererDetails> getOrdererDetails(){
+		return this.ordererDetails;
 	}
 	
-	public void setEventHub(Map<String,String> eventHub){
-		this.eventHub=eventHub;
+	public void setEventHubMap(Map<String,String> eventHub){
+		this.eventHubMap=eventHub;
 	}
 	
-	public Map<String,String> getEventHub(){
-		return this.eventHub;
+	public Map<String,String> getEventHubMap(){
+		return this.eventHubMap;
 	}
 	
 	public Set<String> getEventHubNames(){
-		return Collections.unmodifiableSet(eventHub.keySet());
+		return Collections.unmodifiableSet(eventHubMap.keySet());
 	}
 	
 	public Collection<String> getEventHubLocations() {
-        return Collections.unmodifiableCollection(eventHub.values());
+        return Collections.unmodifiableCollection(eventHubMap.values());
     }
 	
 	
@@ -134,6 +141,30 @@ public class Organization {
 		return this.peerAdmin;
 	}
 	
+	public List<Peer> getPeers() {
+		return peers;
+	}
+
+	public void setPeers(List<Peer> peers) {
+		this.peers = peers;
+	}
+
+	public List<Orderer> getOrderer() {
+		return orderer;
+	}
+
+	public void setOrderer(List<Orderer> orderer) {
+		this.orderer = orderer;
+	}
+
+	public List<EventHub> getEventHub() {
+		return eventHub;
+	}
+
+	public void setEventHub(List<EventHub> eventHub) {
+		this.eventHub = eventHub;
+	}
+
 	
 	
 

@@ -2,7 +2,6 @@ package org.non.config;
 
 public class PeerDetails {
 	private String name;
-	private String containerName;
 	private String location;
 	
 	public void setName(String name){
@@ -11,14 +10,6 @@ public class PeerDetails {
 	
 	public String getName(){
 		return this.name;
-	}
-	
-	public void setContainerName(String container_name){
-		this.containerName=container_name;
-	}
-	
-	public String getContainerName(){
-		return this.containerName;
 	}
 	
 	public void setLocation(String location){

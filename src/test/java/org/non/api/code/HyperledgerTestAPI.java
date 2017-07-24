@@ -7,8 +7,6 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Properties;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -24,7 +22,6 @@ import org.hyperledger.fabric.sdk.exception.ProposalException;
 import org.hyperledger.fabric.sdk.exception.TransactionException;
 import org.non.config.HLConfiguration;
 import org.non.config.Organization;
-import org.non.config.PeerDetails;
 
 
 
@@ -57,31 +54,17 @@ public class HyperledgerTestAPI {
 			}
 
 			/* Add peers from orgs onto channel */
-			List<PeerDetails> peerDetails = thisOrg.getPeer();
-			for (PeerDetails thisPeerDetail : peerDetails) {
-				String peerName = thisPeerDetail.getName();
-				String peerLocation = thisPeerDetail.getLocation();
-
-				Properties peerProperties = config.getPeerProperties(peerName);
-				if (peerProperties == null) {
-					peerProperties = new Properties();
-				}
-				// Example of setting specific options on grpc's
-				// ManagedChannelBuilder
-				peerProperties.put("grpc.ManagedChannelBuilderOption.maxInboundMessageSize", 9000000);
-
-				Peer peer = client.newPeer(peerName, peerLocation, peerProperties);
+			List<Peer> peers = thisOrg.getPeers();
+			for (Peer peer : peers) {
 				newChannel.joinPeer(peer);
-				logger.info("Peer " + peerName + " joined channel " + name);
+			//	logger.info("Peer " + peerName + " joined channel " + name);
 				// thisOrg.addPeer(peer);
 			}
 
 			/* Add EventHubs from orgs onto channel */
 
-			Map<String, String> eventHubDetails = thisOrg.getEventHub();
-			for (String eventHubName : thisOrg.getEventHubNames()) {
-				EventHub eventHub = client.newEventHub(eventHubName, eventHubDetails.get(eventHubName),
-						config.getEventHubProperties(eventHubName));
+			List<EventHub> eventHubs = thisOrg.getEventHub();
+			for (EventHub eventHub : eventHubs) {
 				newChannel.addEventHub(eventHub);
 			}
 

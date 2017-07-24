@@ -1,7 +1,9 @@
 package org.gtnexus.blockchain.channel;
 
 import static java.lang.String.format;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.Collection;
 import java.util.List;
@@ -15,20 +17,16 @@ import org.hyperledger.fabric.sdk.Channel;
 import org.hyperledger.fabric.sdk.HFClient;
 import org.hyperledger.fabric.sdk.Orderer;
 import org.hyperledger.fabric.sdk.Peer;
-import org.hyperledger.fabric.sdk.User;
 import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
 import org.hyperledger.fabric.sdk.exception.TransactionEventException;
 import org.junit.Ignore;
-//import org.hyperledger.fabric.sdk.helper.Channel;
 import org.junit.Test;
-//import org.non.BaseTestCase;
+import org.non.api.code.HLConfigHelper;
 import org.non.api.code.HyperledgerAPI;
 import org.non.api.code.HyperledgerTestAPI;
 import org.non.config.ChannelDetails;
 import org.non.config.HLConfiguration;
-import org.non.config.OrdererDetails;
 import org.non.config.Organization;
-import org.non.api.code.HLConfigHelper;
 
 public class ChannelUtilTest{
 
@@ -37,8 +35,7 @@ public class ChannelUtilTest{
 	private String CHAIN_CODE_VERSION = "1";
 
 	private String ORG_NAME_GTN = "GTN";
-	private String ORG_NAME_ELEMICA = "Elemica";
-	private String ORG_NAME_DNB = "Dun&BradStreet";
+	private String ORG_NAME_DNB = "Dun&BradStreet";	
 	protected static String TESTUSER_1_NAME = "User1";
 	protected static String TEST_ADMIN_NAME = "admin";
 
@@ -55,11 +52,9 @@ public class ChannelUtilTest{
 
 		try {
 			Organization thisOrg = channelorgs.get(0);
-			List<OrdererDetails> ordererDetails = thisOrg.getOrderer();
+			List<Orderer> orderers = thisOrg.getOrderer();
 			client.setUserContext(thisOrg.getPeerAdmin());
-			Orderer thisOrderer = client.newOrderer(ordererDetails.get(0).getName(),
-					ordererDetails.get(0).getLocation(), config.getOrdererProperties(ordererDetails.get(0).getName()));
-
+			Orderer thisOrderer = orderers.get(0);
 			/* Construct Channel */
 			Channel ch1 = HyperledgerTestAPI.constructChannel("ch1", client, channelorgs, thisOrderer,
 					channelDetails.getTransactionFilePath(), config);
@@ -70,7 +65,7 @@ public class ChannelUtilTest{
 
 			/* Install Chaincode */
 			for (Organization org : channelorgs) {
-				HyperledgerAPI.installChaincode(client, org.getPeerAdmin(), HLConfigHelper.getPeers(org.getPeer(), client, config), chaincodeID);
+				HyperledgerAPI.installChaincode(client, org.getPeerAdmin(), org.getPeers(), chaincodeID);
 			}
 
 			/* Run the test for knowing how to use the API. */
@@ -95,9 +90,9 @@ public class ChannelUtilTest{
 						out("Finished transaction with transaction id %s", invokeTransactionEvent.getTransactionID());
 						String payload = null;
 						try {
-//							List<Peer> orgPeers = HLConfigHelper.getPeers(config.getOrgDetailsByName(ORG_NAME_DNB).getPeer(), client, config);
+							List<Peer> orgPeers = thisOrg.getPeers();
 							payload = HyperledgerAPI.query(config.getOrgDetailsByName(ORG_NAME_DNB).getUserByName(TESTUSER_1_NAME),
-									client, chaincodeID, ch1, sampleKey);
+									client, chaincodeID, ch1, sampleKey,orgPeers);
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
@@ -131,7 +126,7 @@ public class ChannelUtilTest{
 		}
 	}
 	
-	@Test
+	@Test @Ignore
     public void createNoPeerChannel(){
         HFClient client = HLConfigHelper.getHyperledgerFabricClient();
         try {
@@ -156,7 +151,8 @@ public class ChannelUtilTest{
            
         }
     }
-
+    
+        
 	static void out(String format, Object... args) {
 		System.err.flush();
 		System.out.flush();
