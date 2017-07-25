@@ -114,7 +114,7 @@ public class HyperledgerAPI {
 
 		InstallProposalRequest installProposalRequest = client.newInstallProposalRequest();
 		installProposalRequest.setChaincodeID(chaincodeID);
-		installProposalRequest.setChaincodeSourceLocation(new File("scripts/gocc/sample1"));
+		installProposalRequest.setChaincodeSourceLocation(new File(""));
 		installProposalRequest.setChaincodeVersion("1");// CHAIN_CODE_VERSION
 
 		logger.info("Sending install proposal");
