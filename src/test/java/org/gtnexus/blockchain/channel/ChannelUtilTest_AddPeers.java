@@ -31,7 +31,7 @@ import org.non.config.Organization;
 public class ChannelUtilTest_AddPeers {
 
 	private String CHAIN_CODE_NAME = "myCC_go";
-	private String CHAIN_CODE_PATH = "github.com/myCC";
+	private String CHAIN_CODE_PATH = "main/go/chaincode/myCC";
 	private String CHAIN_CODE_VERSION = "1";
 
 	private String ORG_NAME_GTN = "GTN";

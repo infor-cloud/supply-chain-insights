@@ -24,7 +24,7 @@ public class HLConnection {
 	protected static String TESTUSER_1_NAME = "User1";
 	protected static String TEST_ADMIN_NAME = "admin";
 	private String CHAIN_CODE_NAME = "myCC_go";
-	private String CHAIN_CODE_PATH = "github.com/myCC";
+	private String CHAIN_CODE_PATH = "main/go/chaincode/myCC";
 	private String CHAIN_CODE_VERSION = "1";
 	private ChaincodeID chainCodeID;
 	//private Block block;
