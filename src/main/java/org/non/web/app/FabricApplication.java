@@ -1,5 +1,6 @@
 package org.non.web.app;
 
+import org.apache.log4j.BasicConfigurator;
 import org.non.web.app.resources.UIResources;
 
 import io.dropwizard.Application;
@@ -11,6 +12,7 @@ import io.dropwizard.setup.Environment;
 public class FabricApplication extends Application<Configuration> {
 
     public static void main(final String[] args) throws Exception {
+    	BasicConfigurator.configure();
         new FabricApplication().run("server");
     }
 

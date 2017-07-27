@@ -32,7 +32,7 @@
    <h1></h1>
    <br>
  <p> &emsp; Name of Company to search </p>
- <div class="col-lg-6">
+ <div class="col-lg-6" id="search">
     <div class="input-group">
       <input type="text" class="form-control" id="compName" placeholder="Search for...">
       <span class="input-group-btn">
@@ -49,13 +49,22 @@
    }
    $(function(){
 	   $('h1').empty();
-	   $('h1').append(" &emsp;Welcome ", Cookies.get('orgName'), " User!")
+	   $("#submit").prop('disabled', true);
 	   $('#noName').hide();
 	   if(Cookies.get('added') == "true"){
 		   $('#added').show();
 	   }
 	   else{
 		   $('#added').hide();
+	   }
+	   
+	   if(Cookies.get('guest') == 'true'){
+		   $('#addTradingPartner').hide();
+		   $('h1').append(" &emsp;Welcome ", Cookies.get('orgName'), " Guest!")
+	   }
+	   else {
+		   $('#addTradingPartner').show();
+		   $('h1').append(" &emsp;Welcome ", Cookies.get('orgName'), " User!")
 	   }
 	   
    })
@@ -67,6 +76,7 @@
    
    $("#compName").keypress(function(e) {
 	   $('#noName').hide();
+	   $("#submit").prop('disabled', false);
 	    if(e.which == 13) {
 	    	$("#submit").click();
 	    }
@@ -78,12 +88,14 @@
 	   $('#error').remove();
 		if(!$('#compName').val()){
 			$('#noName').show();
+			$("#submit").prop('disabled', true);
 	 	   //$(this).closest('.input-group')
 	     	 //  .addClass('has-error has-feedback')
 	 	     //  .prepend('<span class="help-block" id=error>Company Name can not be empty!</span>');
 		}
 		else {
 			$('#noName').hide();
+			   $("#submit").prop('disabled', false);
 			  $(this).closest('.input-group')
 	     	   .removeClass('has-error has-feedback')
 		}
@@ -96,12 +108,10 @@
 		$("#searchResults").remove()
 		$("#error").remove();
 	   if(!$("#compName").val()) {
-		   alert("No company name selected")
 		   $("#goBack").prop('disabled', false);
 		   $("#create").prop('disabled', false);
 	   } 
 	   else if (!checkCookies()){
-		   alert("User info not set up!")
 		   location.href="./sessionProfile.html"
 	   }
 	   else {
@@ -131,7 +141,7 @@
 				$("#create").prop('disabled', false);
 			},
 			error: function(data){
-				$('body').prepend("<p id='error'></p>")
+				$('#search').append("<p id='error'></p>")
 				$("#error").append(data.responseText )
 				$("#error").css('color','red')
 				$("#goBack").prop('disabled', false);

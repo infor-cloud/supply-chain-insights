@@ -34,6 +34,8 @@ import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
 import org.hyperledger.fabric.sdk.security.CryptoSuite;
 import org.hyperledger.fabric_ca.sdk.HFCAClient;
 import org.hyperledger.fabric_ca.sdk.RegistrationRequest;
+import org.hyperledger.fabric_ca.sdk.exception.EnrollmentException;
+import org.hyperledger.fabric_ca.sdk.exception.RegistrationException;
 import org.non.config.HLConfiguration;
 import org.non.config.NetworkUser;
 import org.non.config.OrdererDetails;
@@ -119,7 +121,17 @@ public class HLConfigHelper {
 				thisOrg.setOrderer(getOrdererFromOrdererDetails(thisOrg.getOrdererDetails()));
 				thisOrg.setEventHub(getEventHubsFromEventHubMap(thisOrg.getEventHubMap()));
 			}
-		} catch (Exception e) {
+		}catch(RegistrationException e){
+			logger.error(e.getMessage());
+			logger.error("Please restart the fabric script");
+			System.exit(300);
+		}
+		catch(EnrollmentException e) {
+			logger.error(e.getMessage());
+			logger.error("Please start the fabric script");
+			System.exit(300);
+		}
+		catch (Exception e) {
 			logger.error(e.getMessage());
 		}
 	}
