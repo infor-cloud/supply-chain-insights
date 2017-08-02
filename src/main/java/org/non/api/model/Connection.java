@@ -1,24 +1,26 @@
 package org.non.api.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import javax.ws.rs.QueryParam;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
+
+@JsonAutoDetect(fieldVisibility = Visibility.ANY)
 public class Connection {
-	@JsonProperty
-	private String buyer;
-	@JsonProperty
-	private String seller;
-	@JsonProperty
+	@QueryParam("comp1")
+	private String comp1;
+	@QueryParam("comp2")
+	private String comp2;
+	@QueryParam("status")
 	private String status;
-	@JsonProperty
+	@QueryParam("process")
 	private String businessProcess;
 	
-	public Connection (String cp1, String cp2, String status, String businessProcess){
-		
-		buyer = cp1;
-		seller = cp2;
-		this.status = status;
-		this.businessProcess = businessProcess;	
-		
+	public String toString(){
+		return "Company 1: " + comp1 + 
+				"\nCompany2: " + comp2 + 
+				"\nStatus: " + status + 
+				"\nBusiness Process: " + businessProcess;
 	}
 	
 }

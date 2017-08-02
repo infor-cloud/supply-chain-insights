@@ -1,12 +1,18 @@
 package org.non.web.app.resources;
 
 import static java.lang.String.format;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
-import org.hyperledger.fabric.protos.common.Common.Block;
+import org.hyperledger.fabric.sdk.BlockEvent.TransactionEvent;
+import org.hyperledger.fabric.sdk.exception.TransactionEventException;
+import org.hyperledger.fabric.sdk.BlockEvent;
 import org.hyperledger.fabric.sdk.ChaincodeID;
 import org.hyperledger.fabric.sdk.Channel;
 import org.hyperledger.fabric.sdk.HFClient;
@@ -17,6 +23,7 @@ import org.non.api.code.HyperledgerAPI;
 import org.non.api.model.TradingPartner;
 import org.non.config.ChannelDetails;
 import org.non.config.HLConfiguration;
+import org.non.config.NetworkUser;
 import org.non.config.Organization;
 
 public class HLConnection {
@@ -82,7 +89,31 @@ public class HLConnection {
 			}
 
 			/* Initiate Chaincode on peers on the channel */
-			HyperledgerAPI.initiateChaincode(client, chaincodeID, ch1, "scripts/chaincodeendorsementpolicy.yaml");
+			CompletableFuture<TransactionEvent> initFuture = HyperledgerAPI.initiateChaincode(client, chaincodeID, ch1, "scripts/chaincodeendorsementpolicy.yaml");
+			 int TRANSACTIONWAITTIME = 140000;
+			 	
+			 initFuture.thenApply(transactionEvent -> {
+					assertTrue(transactionEvent.isValid());
+
+					try {
+						//function here!!
+						setUpOrgs();
+
+					} catch (Exception e) {
+						if (e instanceof TransactionEventException) {
+							BlockEvent.TransactionEvent te = ((TransactionEventException) e).getTransactionEvent();
+							if (te != null) {
+								fail(format("Transaction with txid %s failed. %s", te.getTransactionID(), e.getMessage()));
+							}
+							fail(format("Test failed with %s exception %s", e.getClass().getName(), e.getMessage()));
+						} else {
+							e.printStackTrace();
+							fail("Test failed with error : " + e.getMessage());
+						}
+					}
+					return null;
+
+				}).get(TRANSACTIONWAITTIME, TimeUnit.SECONDS);
 
 			logger.info("That's all!");
 
@@ -156,5 +187,27 @@ public class HLConnection {
 		}
 	}
 
+	public void setUpOrgs () throws Exception {
+		List<NetworkUser> gtnUsers = config.getUsersForOrg("GTN");
+		List<NetworkUser> elemicaUsers = config.getUsersForOrg("Elemica");
+		List<NetworkUser> dnbUsers = config.getUsersForOrg("Dun&BradStreet");
+		Channel ch1 = client.getChannel("ch1");
+		
+		for (NetworkUser user : gtnUsers){
+			String args[] = {"addMember", "ntp"};
+			HyperledgerAPI.invoke(args, user, client, chainCodeID, ch1);
+			System.out.println(user.toString());
+		}
+		for (NetworkUser user : elemicaUsers){
+			String args[] = {"addMember", "ntp"};
+			HyperledgerAPI.invoke(args, user, client, chainCodeID, ch1);
+			System.out.println(user.toString());
+		}
+		for (NetworkUser user : dnbUsers){
+			String args[] = {"addMember", "oracle"};
+			HyperledgerAPI.invoke(args, user, client, chainCodeID, ch1);
+			System.out.println(user.toString());
+		}
+	}
 
 }

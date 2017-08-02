@@ -1,44 +1,123 @@
 <!DOCTYPE html>
 <html>
 <head>
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+<script
+	src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.1.4/js.cookie.js"></script>
 
+<link rel="stylesheet"
+	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<link rel="stylesheet"
+	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css">
 <script
-  src="https://code.jquery.com/jquery-3.2.1.min.js"
-  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
-  crossorigin="anonymous"></script>
-<script
-  src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
-  integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
-  crossorigin="anonymous"></script>	
+	src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
 <meta charset="ISO-8859-1">
 <title>Create Connection</title>
+<style>
+.take-all-space-you-can {
+	width: 33%;
+	margin-top:1%
+}
+
+</style>
 </head>
 <body>
-  Enter in Connection Information <br><br>
-  Buyer:<input type="text" id="comp1"><br> 
-  Seller: <input type="text" id="comp2">     
-  <br>
-  <br>
-  <button id="create" class="float-left submit-button">Create </button>
-  <button id="goBack" class="float-left submit-button">Go Back</button>
-  <script type="text/javascript">
-  $("#goBack").click(function(){
-	location.href="./index.html" 
-  });
+
+	<ul class="nav nav-tabs">
+		<li role="presentation" class="take-all-space-you-can"><a
+			href="./sessionProfile.html">My Profile</a></li>
+		<li role="presentation" class="take-all-space-you-can"><a
+			href="./search.html">Trading Partners</a></li>
+		<li role="presentation" class="active take-all-space-you-can"><a
+			href="./createConnect.html">Connections</a></li>
+	</ul>
+
+	<h2 style="margin-left: 1%">Creating a Connection</h2>
+	<div class="row" style="margin-left: 2%">
+		<div class="form-group col-xs-4">
+			<label for="comp1">Company:</label> <input id="comp1"
+				class="form-control input-group-lg reg_name" type="text"
+				name="comp1" title="Enter Company Name"
+				placeholder="Big Corporation" />
+		</div>
+
+		<div class="form-group col-xs-4">
+			<label for="comp2">Company: </label> <input id="comp2"
+				class="form-control input-group-lg reg_name" type="text"
+				name="comp2" title="Enter Company Name"
+				placeholder="Superb Corporation" />
+		</div>
+	</div>
+	<div class="row" style="margin-left: 3%">
+		<div class="input-group col-xs-4">
+
+			<div class="input-group-btn dropdown" id="stat">
+
+				<button type="button" class="btn btn-default dropdown-toggle"
+					data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="statusList">
+					Set Status <span class="caret"></span>
+				</button>
+				<ul class="dropdown-menu dropdown-menu" id="statList">
+					<li><a href="#">Active</a></li>
+					<li><a href="#">Pending</a></li>
+				</ul>
+			</div>
+			<!-- /btn-group -->
+			<div class="input-group-btn dropdown">
+				<button type="button" class="btn btn-default dropdown-toggle"
+					data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+					Set Business Process<span class="caret"></span>
+				</button>
+				<ul class="dropdown-menu dropdown-menu" id="processList">
+					<li><a href="#">Plan</a></li>
+					<li><a href="#">Source</a></li>
+					<li><a href="#">Make</a></li>
+					<li><a href="#">Move</a></li>
+					<li><a href="#">Deliver</a></li>
+				</ul>
+			</div>
+			<!-- /btn-group -->
+		</div>
+		<!-- /input-group -->
+
+	</div>
+	<br>
+	<button id="create" class="btn btn-primary" style="margin-left: 3%">Create</button>
+	<script type="text/javascript">
+	
+	$(".dropdown-menu li a").click(function(){
+		  $(this).parents(".dropdown").find('.btn').html($(this).text() + ' <span class="caret"></span>');
+		  $(this).parents(".dropdown").find('.btn').val($(this).data('value'));
+		});
+	
+	var status;
+	var process;
+	$('#statList li a').on('click', function(){
+	   status = $(this).html()
+	});
+	$('#processList li a').on('click', function(){
+		process = $(this).html()
+	})
   $("#create").click(function() {
 	$.ajax({
-		
 		type: "GET",
 		url: "http://localhost:8080/fabric/createConnect",
 		dataType: "json",
 		success: function(data) {
-			alert(data.buyer);
+			
 		},
-			data: {cp2: $("#comp2").val(), cp1: $("#comp1").val()}
+			data: {	
+				comp1: $("#comp1").val(),
+				comp2: $("#comp2").val(), 
+				status: status,
+				process: process
+			}
 		});
 	});
   </script>
-   
-   
+
+
 </body>
 </html>
