@@ -25,13 +25,13 @@
 
 <ul class="nav nav-tabs">
   <li role="presentation"class="take-all-space-you-can"><a href="./sessionProfile.html">My Profile</a></li>
-  <li role="presentation"class="active take-all-space-you-can"><a href="./search.html">Trading Partners</a></li>
-  <li role="presentation"class="take-all-space-you-can"><a href="./searchConnection.html">Connections</a></li>
+  <li role="presentation"class="take-all-space-you-can"><a href="./search.html">Trading Partners</a></li>
+  <li role="presentation"class="active take-all-space-you-can"><a href="./searchConnection.html">Connections</a></li>
 </ul>
 
-<h3 class="text-success" style="margin-left:5%" id="added">Adding Partner was successful.</h3>
+<h3 class="text-success" style="margin-left:5%" id="added">Adding Connection was successful.</h3>
 <h3 class="text-danger" style = "margin-left:5%" id="noName">Company Name cannot be empty!</h3>
-<button id="addTradingPartner" class="btn btn-primary pull-right" style="margin-right:2%">Add Trading Partner </button>
+<button id="addConnection" class="btn btn-primary pull-right" style="margin-right:2%">Add Connection </button>
    <h1></h1>
    <br>
    <button id="modify" class="btn btn-success pull-right" style="margin-right:2%">Modify </button>
@@ -69,18 +69,18 @@
 	   }
 	   
 	   if(Cookies.get('guest') == 'true'){
-		   $('#addTradingPartner').hide();
+		   $('#addConnection').hide();
 		   $('h1').append(" &emsp;Welcome ", Cookies.get('orgName'), " Guest!")
 	   }
 	   else {
-		   $('#addTradingPartner').show();
+		   $('#addConnection').show();
 		   $('h1').append(" &emsp;Welcome ", Cookies.get('orgName'), " User!")
 	   }
 	   
    })
    
-   $('#addTradingPartner').click(function(){
-	   location.href="./createPartner.html"
+   $('#addConnection').click(function(){
+	   location.href="./createConnect.html"
    })
    
    
@@ -127,27 +127,17 @@
 	   else {
 		$.ajax({
 			type: "GET",
-			url: "http://localhost:8080/fabric/search",
+			url: "http://localhost:8080/fabric/queryConnection",
 			dataType: "json",
 			success: function(data) {
-				alert(data.name)
-				//var obj = JSON.parse(data);
+				var obj = JSON.parse(data);
 				$('body').append ("<div id='searchResults'></div>")
 				$('#searchResults').append ("<table class='table table-bordered col-xs-6' id=res>" +
 												"<tbody>" + 
-													"<tr><td>Name</td><td>" + data.name + "</td></tr>" + 
-													"<tr><td>Website URI</td><td>" + data.websiteURI + "</td></tr>" + 
-													"<tr><td>Street Name</td><td>" + data.streetName + "</td></tr>" + 
-													"<tr><td>City Name</td><td>" + data.cityName + "</td></tr>" + 
-													"<tr><td>Postal Zone</td><td>" + data.postalZone + "</td></tr>" + 
-													"<tr><td>Contact Name</td><td>" + data.contactName + "</td></tr>" + 
-													"<tr><td>Contact Email</td><td>" + data.contactEmail + "</td></tr>" + 
-													"<tr><td>Contact Telephone</td><td>" + data.contactTelephone + "</td></tr>");
-				$.each(data.idList,function(index, value){
-					$('#res').append("<tr><td> Identifier:" + value.schemeName + "</td><td>" + value.id + "</td><tr>")
-				});
-				
-				//$('#searchResults').append("</tbody></table>);
+													"<tr><td>Company</td><td>" + obj.comp1 + "</td></tr>" + 
+													"<tr><td>Company</td><td>" + obj.comp2 + "</td></tr>" + 
+													"<tr><td>Status</td><td>" + obj.status + "</td></tr>" + 
+													"<tr><td>Business Process</td><td>" + obj.businessProcess + "</td></tr></tbody>");
 				$("#goBack").prop('disabled', false);
 				$("#create").prop('disabled', false);
 				$('#modify').show();

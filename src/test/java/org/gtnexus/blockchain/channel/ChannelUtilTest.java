@@ -91,8 +91,9 @@ public class ChannelUtilTest{
 						String payload = null;
 						try {
 							List<Peer> orgPeers = thisOrg.getPeers();
-							payload = HyperledgerAPI.query(config.getOrgDetailsByName(ORG_NAME_DNB).getUserByName(TESTUSER_1_NAME),
-									client, chaincodeID, ch1, sampleKey,orgPeers);
+							String[] args = {"query", sampleKey };
+							payload = HyperledgerAPI.query(args, config.getOrgDetailsByName(ORG_NAME_DNB).getUserByName(TESTUSER_1_NAME),
+									client, chaincodeID, ch1,orgPeers);
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
