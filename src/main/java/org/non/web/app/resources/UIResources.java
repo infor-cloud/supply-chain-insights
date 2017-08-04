@@ -30,25 +30,29 @@ public class UIResources {
 	@Path("/search")
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	public String getTradingPartner(@QueryParam("orgName") String orgName, @QueryParam("userName") String userName,
-			@QueryParam("channelName") String channelName, @QueryParam("compName") String compName) throws Exception {
-
+	public String getTradingPartner(
+			@QueryParam("orgName") String orgName, 
+			@QueryParam("userName") String userName,
+			@QueryParam("channelName") String channelName,
+			@QueryParam("compName") String compName) throws Exception {
+		
 		System.out.println("\n Org Name: " + orgName + "\n User Name: " + userName + "\n Channel Name: " + channelName
 				+ "\n compName: " + compName);
-
+		
 		String result = hlconnection.getTradingPartner(orgName, userName, channelName, compName);
 		System.out.println("RESULT:" + result);
 		return result;
-		// return
-		// "{\"name\":\"123\",\"websiteURI\":\"123213\",\"streetName\":\"132\",\"cityName\":\"123\",\"postalZone\":\"213\",\"contactName\":\"31\",\"contactEmail\":\"1322\",\"contactTelephone\":\"3\",\"ids\":\"[]\",\"idList\":[]}";
 	}
 
 	@Path("/create")
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	// @Produces(MediaType.TEXT_PLAIN)
-	public String createPartner(@QueryParam("userName") String userName, @QueryParam("orgName") String orgName,
-			@QueryParam("channelName") String channelName, @BeanParam TradingPartner tradingPartner) throws Exception {
+	public String createPartner(
+			@QueryParam("userName") String userName, 
+			@QueryParam("orgName") String orgName,
+			@QueryParam("channelName") String channelName, 
+			@BeanParam TradingPartner tradingPartner) throws Exception {
 		tradingPartner.init();
 
 		ObjectMapper mapper = new ObjectMapper();
@@ -78,12 +82,32 @@ public class UIResources {
 	@Path("/createConnect")
 	@GET
 	@Produces (MediaType.APPLICATION_JSON)
-	public Connection getConnection(
+	public Connection createConnection(
+			@QueryParam("orgName") String orgName, 
+			@QueryParam("userName") String userName,
+			@QueryParam("channelName") String channelName, 
+			@QueryParam("comp1") String comp1,
+			@QueryParam("comp2") String comp2,
+			@QueryParam("status") String status,
+			@QueryParam("process") String process) throws Exception {
+		Connection connect = new Connection(comp1, comp2, status, process);
+		System.out.println(connect.toString());
+		hlconnection.createConnection(orgName, userName, channelName, connect);
+		return connect;
+	}
+	
+	@Path("/queryConnection")
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	public String queryConnection (
 			@QueryParam("orgName") String orgName,
 			@QueryParam("userName") String userName,
 			@QueryParam("channelName") String channelName,
-			@BeanParam Connection connect) throws Exception{
-		System.out.println(connect.toString());
-		return connect;
+			@QueryParam("compName") String compName) throws Exception {
+				System.out.println("Querying for Connection");
+				String result = hlconnection.queryConnection(orgName, userName, channelName, compName);
+				System.out.println(result);
+				return result;
 	}
+	
 }

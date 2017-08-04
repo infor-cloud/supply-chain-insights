@@ -268,7 +268,7 @@ public class HyperledgerAPI {
 	 * Send query proposal to all peers. Must provide key of data
 	 * instance(trading partner)
 	 */
-	public static String query(User user, HFClient client, ChaincodeID chaincodeID, Channel channel, String key, List<Peer> peers)
+	public static String query(String[] args, User user, HFClient client, ChaincodeID chaincodeID, Channel channel, List<Peer> peers)
 			throws ProposalException, InvalidArgumentException {
 		Set<String> payloadSet = new HashSet<>();
 
@@ -276,9 +276,9 @@ public class HyperledgerAPI {
 		// Send Query Proposal to all peers
 		//
 		client.setUserContext(user);
-		logger.info("Query chaincode for the value of " + key);
+		logger.info("Query chaincode");
 		QueryByChaincodeRequest queryByChaincodeRequest = client.newQueryProposalRequest();
-		queryByChaincodeRequest.setArgs(new String[] { "query", key });
+		queryByChaincodeRequest.setArgs(args);
 		queryByChaincodeRequest.setFcn("invoke");
 		queryByChaincodeRequest.setChaincodeID(chaincodeID);
 
@@ -317,3 +317,4 @@ public class HyperledgerAPI {
 	}
 
 }
+

@@ -31,7 +31,7 @@
 		<li role="presentation" class="take-all-space-you-can"><a
 			href="./search.html">Trading Partners</a></li>
 		<li role="presentation" class="active take-all-space-you-can"><a
-			href="./createConnect.html">Connections</a></li>
+			href="./searchConnection.html">Connections</a></li>
 	</ul>
 
 	<h2 style="margin-left: 1%">Creating a Connection</h2>
@@ -106,13 +106,17 @@
 		url: "http://localhost:8080/fabric/createConnect",
 		dataType: "json",
 		success: function(data) {
-			
+			Cookies.set('added', "true", {domain: '', path: ''});
+				location.href="./searchConnection.html"
 		},
 			data: {	
 				comp1: $("#comp1").val(),
 				comp2: $("#comp2").val(), 
 				status: status,
-				process: process
+				process: process,
+				userName: Cookies.get('userName'),
+				orgName: Cookies.get('orgName'),
+				channelName: Cookies.get('channelName'),
 			}
 		});
 	});
