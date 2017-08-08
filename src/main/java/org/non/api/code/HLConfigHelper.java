@@ -29,6 +29,7 @@ import org.hyperledger.fabric.sdk.Enrollment;
 import org.hyperledger.fabric.sdk.EventHub;
 import org.hyperledger.fabric.sdk.HFClient;
 import org.hyperledger.fabric.sdk.Orderer;
+import org.hyperledger.fabric.sdk.BlockEvent.TransactionEvent;
 import org.hyperledger.fabric.sdk.Peer;
 import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
 import org.hyperledger.fabric.sdk.security.CryptoSuite;
@@ -90,7 +91,7 @@ public class HLConfigHelper {
 					user.setMPSID(mspid);
 				}
 
-				thisOrg.addUser(user); // The user of this org
+				//thisOrg.addUser(user); // The user of this org
 
 				final String thisOrgDomainName = thisOrg.getDomain();
 
