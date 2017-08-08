@@ -41,7 +41,7 @@ public class ChannelUtilTest{
 
 	private int TRANSACTIONWAITTIME = 140000;
 
-	@Test
+	@Test @Ignore
 	public void createChannelTest() throws InvalidArgumentException {
 
 		HFClient client = HLConfigHelper.getHyperledgerFabricClient();
@@ -91,8 +91,9 @@ public class ChannelUtilTest{
 						String payload = null;
 						try {
 							List<Peer> orgPeers = thisOrg.getPeers();
-							payload = HyperledgerAPI.query(config.getOrgDetailsByName(ORG_NAME_DNB).getUserByName(TESTUSER_1_NAME),
-									client, chaincodeID, ch1, sampleKey,orgPeers);
+							String args[] = { "query", sampleKey };
+							payload = HyperledgerAPI.query(args,config.getOrgDetailsByName(ORG_NAME_DNB).getUserByName(TESTUSER_1_NAME),
+									client, chaincodeID, ch1,orgPeers);
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
@@ -125,6 +126,94 @@ public class ChannelUtilTest{
 			fail(e.getMessage());
 		}
 	}
+	
+	
+	@Test
+	public void createDataVerifyTest() throws InvalidArgumentException {
+
+		HFClient client = HLConfigHelper.getHyperledgerFabricClient();
+		HLConfiguration config = HLConfigHelper.getHyperledgerFabricConfig();
+		
+		ChannelDetails channelDetails = config.getChannelDetails("ch1");
+		List<Organization> channelorgs = config.getOrgsOnChannel("ch1");
+
+		try {
+			Organization thisOrg = channelorgs.get(0);
+			List<Orderer> orderers = thisOrg.getOrderer();
+			client.setUserContext(thisOrg.getPeerAdmin());
+			Orderer thisOrderer = orderers.get(0);
+			/* Construct Channel */
+			Channel ch1 = HyperledgerTestAPI.constructChannel("ch1", client, channelorgs, thisOrderer,
+					channelDetails.getTransactionFilePath(), config);
+
+			/* ChainCode Configuration */
+			ChaincodeID chaincodeID = ChaincodeID.newBuilder().setName(CHAIN_CODE_NAME).setVersion(CHAIN_CODE_VERSION)
+					.setPath(CHAIN_CODE_PATH).build();
+
+			/* Install Chaincode */
+			for (Organization org : channelorgs) {
+				HyperledgerAPI.installChaincode(client, org.getPeerAdmin(), org.getPeers(), chaincodeID);
+			}
+
+			/* Run the test for knowing how to use the API. */
+
+			////////////////////////////////////////////////
+			HyperledgerTestAPI.showPeersOnChannel(ch1);
+
+			String sampleKey = "Zara";
+			String sampleRecord = "Name: Zara, ID: 000-000-999";
+
+			CompletableFuture<TransactionEvent> initFuture = HyperledgerAPI.initiateChaincode(client, chaincodeID, ch1,
+					"scripts/chaincodeendorsementpolicy.yaml");
+			initFuture.thenApply(transactionEvent -> {
+				assertTrue(transactionEvent.isValid());
+				out("Finished instantiate transaction with transaction id %s", transactionEvent.getTransactionID());
+
+				try {
+					CompletableFuture<TransactionEvent> invokeFuture = HyperledgerAPI.invoke(
+							new String[] { "add", sampleKey, sampleRecord }, config.getOrgDetailsByName(ORG_NAME_GTN).getUserByName(TESTUSER_1_NAME), client, chaincodeID, ch1);
+					invokeFuture.thenApply(invokeTransactionEvent -> {
+						assertTrue(invokeTransactionEvent.isValid());
+						out("Finished transaction with transaction id %s", invokeTransactionEvent.getTransactionID());
+						String payload = null;
+						try {
+							List<Peer> orgPeers = thisOrg.getPeers();
+							String args[] = { "query", sampleKey };
+							payload = HyperledgerAPI.query(args,config.getOrgDetailsByName(ORG_NAME_DNB).getUserByName(TESTUSER_1_NAME),
+									client, chaincodeID, ch1,orgPeers);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+						out("Query payload of %s returned %s", sampleKey, payload);
+						return null;
+					}).get(TRANSACTIONWAITTIME, TimeUnit.SECONDS);
+
+				} catch (Exception e) {
+					if (e instanceof TransactionEventException) {
+						BlockEvent.TransactionEvent te = ((TransactionEventException) e).getTransactionEvent();
+						if (te != null) {
+							fail(format("Transaction with txid %s failed. %s", te.getTransactionID(), e.getMessage()));
+						}
+						fail(format("Test failed with %s exception %s", e.getClass().getName(), e.getMessage()));
+					} else {
+						out("Caught an exception running chain %s", ch1.getName());
+						e.printStackTrace();
+						fail("Test failed with error : " + e.getMessage());
+					}
+				}
+				return null;
+
+			}).get(TRANSACTIONWAITTIME, TimeUnit.SECONDS);
+
+			out("That's all!");
+
+		} catch (Exception e) {
+			e.printStackTrace();
+
+			fail(e.getMessage());
+		}
+	}
+
 	
 	@Test @Ignore
     public void createNoPeerChannel(){

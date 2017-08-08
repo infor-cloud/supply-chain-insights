@@ -48,6 +48,22 @@ public class UIResources {
 		//return "{\"name\":\"123\",\"websiteURI\":\"123213\",\"streetName\":\"132\",\"cityName\":\"123\",\"postalZone\":\"213\",\"contactName\":\"31\",\"contactEmail\":\"1322\",\"contactTelephone\":\"3\",\"ids\":\"[]\",\"idList\":[]}";
 	}
 	
+	@Path("/getUnverified")
+	@GET
+	@Produces (MediaType.APPLICATION_JSON)
+	public String getUnverifiedTradingPartner (
+			@QueryParam("orgName")     String orgName,
+			@QueryParam("userName")    String userName,
+			@QueryParam("channelName") String channelName) throws Exception{
+		
+		
+		String result =  hlconnection.queryVerified(orgName, userName, channelName);
+		System.out.println("RESULT:" + result);
+		
+		return result;
+		//return "{\"name\":\"123\",\"websiteURI\":\"123213\",\"streetName\":\"132\",\"cityName\":\"123\",\"postalZone\":\"213\",\"contactName\":\"31\",\"contactEmail\":\"1322\",\"contactTelephone\":\"3\",\"ids\":\"[]\",\"idList\":[]}";
+	}
+	
 	@Path("/create")
 	@GET
 	@Produces (MediaType.APPLICATION_JSON)
@@ -55,6 +71,7 @@ public class UIResources {
 	public String createPartner(@QueryParam("userName") String userName,
 			@QueryParam("orgName") String orgName,
 			@QueryParam("channelName") String channelName,
+			@QueryParam("func") String func,
 			@BeanParam TradingPartner tradingPartner) throws Exception{
 		tradingPartner.init();
 		ObjectMapper mapper = new ObjectMapper();
@@ -65,7 +82,7 @@ public class UIResources {
 						   "\n OrgName: " + orgName +
 						   "\n channelName: " + channelName);
 		
-		String result = hlconnection.createPartner(orgName, userName, channelName, tradingPartner);
+		String result = hlconnection.createPartner(orgName, userName, channelName, tradingPartner,func);
 		System.out.println(result);
 		JsonObject obj = new JsonObject();
 		if (result.equalsIgnoreCase("SUCCESS"))

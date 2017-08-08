@@ -239,7 +239,8 @@ public class HyperledgerAPI {
 		 * endorse the transaction proposal for calling invoke methods which may
 		 * modify the state of world.
 		 */
-		Collection<ProposalResponse> transactionPropResp = channel.sendTransactionProposal(transactionProposalRequest,
+		Collection<ProposalResponse> transactionPropResp=null;
+		transactionPropResp = channel.sendTransactionProposal(transactionProposalRequest,
 				channel.getPeers());
 		for (ProposalResponse response : transactionPropResp) {
 			if (response.getStatus() == ProposalResponse.Status.SUCCESS) {
@@ -254,7 +255,7 @@ public class HyperledgerAPI {
 				+ successful.size() + ". Failed: " + failed.size());
 		if (failed.size() > 0) {
 			ProposalResponse firstTransactionProposalResponse = failed.iterator().next();
-			new RuntimeException("Not enough endorsers for invoke(add key,value):" + failed.size() + " endorser error: "
+			throw new RuntimeException("Not enough endorsers for invoke(add key,value):" + failed.size() + " endorser error: "
 					+ firstTransactionProposalResponse.getMessage() + ". Was verified: "
 					+ firstTransactionProposalResponse.isVerified());
 		}
@@ -268,7 +269,7 @@ public class HyperledgerAPI {
 	 * Send query proposal to all peers. Must provide key of data
 	 * instance(trading partner)
 	 */
-	public static String query(User user, HFClient client, ChaincodeID chaincodeID, Channel channel, String key, List<Peer> peers)
+	public static String query(String[] args, User user, HFClient client, ChaincodeID chaincodeID, Channel channel, List<Peer> peers)
 			throws ProposalException, InvalidArgumentException {
 		Set<String> payloadSet = new HashSet<>();
 
@@ -276,9 +277,8 @@ public class HyperledgerAPI {
 		// Send Query Proposal to all peers
 		//
 		client.setUserContext(user);
-		logger.info("Query chaincode for the value of " + key);
 		QueryByChaincodeRequest queryByChaincodeRequest = client.newQueryProposalRequest();
-		queryByChaincodeRequest.setArgs(new String[] { "query", key });
+		queryByChaincodeRequest.setArgs(args);
 		queryByChaincodeRequest.setFcn("invoke");
 		queryByChaincodeRequest.setChaincodeID(chaincodeID);
 
@@ -315,5 +315,5 @@ public class HyperledgerAPI {
 			return payloadSet.iterator().next();
 		}
 	}
-
+	
 }
