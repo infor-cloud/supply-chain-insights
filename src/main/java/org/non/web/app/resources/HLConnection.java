@@ -21,6 +21,7 @@ import org.hyperledger.fabric.sdk.Peer;
 import org.non.api.code.HLConfigHelper;
 import org.non.api.code.HyperledgerAPI;
 import org.non.api.model.Connection;
+import org.non.api.code.NetworkBlockListener;
 import org.non.api.model.TradingPartner;
 import org.non.config.ChannelDetails;
 import org.non.config.HLConfiguration;
@@ -97,6 +98,10 @@ public class HLConnection {
 				HyperledgerAPI.installChaincode(client, org.getPeerAdmin(), org.getPeers(), transactionChaincodeID);
 			}
 
+			/*Register a BlockListener on channel*/
+			NetworkBlockListener listener = new NetworkBlockListener();
+			ch1.registerBlockListener(listener);
+			
 			/* Initiate Chaincode on peers on the channel */
 			HyperledgerAPI.initiateChaincode(client, transactionChaincodeID, ch1, "scripts/chaincodeendorsementpolicy.yaml");
 			CompletableFuture<TransactionEvent> initFuture = HyperledgerAPI.initiateChaincode(client, chaincodeID, ch1,
@@ -213,13 +218,9 @@ public class HLConnection {
 
 		else {
 			logger.info("Chain found for name: %s" + channelName);
-			String args[] = { "query", compName };
-
-			// org.non.config.Org to be updated with storing a list of peers
-			List<Peer> orgPeers = config.getOrgDetailsByName(orgName).getPeers();
-			String result = HyperledgerAPI.query(args, config.getOrgDetailsByName(orgName).getUserByName(userName),
-					client, chainCodeID, ch, orgPeers);
-			logger.info("Result: " + result);
+			List<Peer> orgPeers=config.getOrgDetailsByName(orgName).getPeers();			
+			String result = HyperledgerAPI.query(new String[] { "query", compName }, config.getOrgDetailsByName(orgName).getUserByName(userName), client,
+					chainCodeID, ch, orgPeers);
 			if (result.isEmpty())
 				return "ERROR: No trading partner exists for: " + compName;
 
