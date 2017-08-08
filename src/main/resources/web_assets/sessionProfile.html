@@ -40,6 +40,28 @@
 <button class="btn btn-default center-block"  id="elemica">
      <img src="http://www.hubga.com/wp-content/uploads/2016/01/ElemicaLogo.png" width="300"/> 
 </button>
+
+<br>
+<br>
+<br>
+ <div class="col-xs-4 btn-group dropup" id="otherOrgs">
+    <label for="otherOrgLabel">Other Org: </label>
+    <input type="text" class="form-control " id="name" placeholder="Big Corporation">
+    <span class="btn-group">
+    	<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+   			 Choose Org <span class="caret"></span>
+  		</button>
+  		<ul class="dropdown-menu">
+    		 <li><a href="#" class="active">GT Nexus</a></li>
+     		 <li><a href="#" class="inactive">Elemica</a></li>
+     		 <li><a href="#" class="inactive">Dun and Bradstreet</a></li>
+  		</ul>
+    </span>
+    <br><br>
+    <button id="setOrg" class="btn btn-primary"style="margin-left:2%; margin-bottom:3%">Log In </button>
+</div>
+
+
  <script type="text/javascript">
 
  
@@ -47,6 +69,8 @@
 		 Cookies.set('orgName', "GTN", {domain: '', path: ''});
 		 Cookies.set('userName', "User1", {domain: '', path: ''});
 		 Cookies.set('channelName', "ch1", {domain: '', path: ''});
+		 Cookies.set('guest', 'false');
+		 Cookies.set('guestName', "");
 	 
 		location.href="./search.html" 
  })
@@ -56,7 +80,9 @@
 		 Cookies.set('orgName', "Dun&BradStreet", {domain: '', path: ''});
 		 Cookies.set('userName', "User1", {domain: '', path: ''});
 		 Cookies.set('channelName', "ch1", {domain: '', path: ''});
-	 
+		 Cookies.set('guest', 'false');
+		 Cookies.set('guestName', "");
+		 
 			location.href="./search.html"  
  })
  
@@ -65,7 +91,9 @@
 		 Cookies.set('orgName', "Elemica", {domain: '', path: ''});
 		 Cookies.set('userName', "User1", {domain: '', path: ''});
 		 Cookies.set('channelName', "ch1", {domain: '', path: ''});
-	 
+		 Cookies.set('guest', 'false');
+		 Cookies.set('guestName', "");
+		 
 			location.href="./search.html"  
  })
  
@@ -75,10 +103,16 @@
 	 $('#gtn').show();
 	 $('#dnb').show()
 	 $('#elemica').show();
+	 $('#otherOrgs').show();
  })
  
  function showUser(){
-		$('.container').append("<br><br><br><p><strong>Current Organization:</strong></p>");
+	 	if( Cookies.get('guest') == 'true') {
+	 		$('.container').append("<br><br><br><p><strong>Guest Org: " + Cookies.get('guestName') + " <br>using: </strong></p>");
+	 		
+	 	}else {
+			$('.container').append("<br><br><br><p><strong>Current Organization:</strong></p>");
+	 	}
 		var org = Cookies.get('orgName')
 		if(org == "GTN")
 			$('.container').append(' <img src="http://www.scf-forum.com/uploads/1/0/7/8/10788161/gt-nexus-inforco-rgb-1200px_3_orig.png" width="300"/>') 
@@ -96,14 +130,56 @@
 		$('#gtn').hide();
 		$('#dnb').hide();
 		$('#elemica').hide();
+		$('#otherOrgs').hide();
 	 }
 	 else {
+		$('#otherOrgs').show();
 		$('#changeUser').hide();
 		$('#gtn').show();
 		$('#dnb').show();
 		$('#elemica').show();
 	 }
  })
+ 
+  $(".dropdown-menu li a").click(function(){
+    
+    $(".btn:first-child").text($(this).text());
+    $(".btn:first-child").append(' <span class="caret"></span>')
+    $(".btn:first-child").val($(this).text());
+  });
+ 
+ $("#setOrg").click(function(){
+	 var org = $(".btn:first-child").text();
+	 var guestOrg = $("#name").val();
+	 if(org == "GT Nexus "){
+		 Cookies.set('orgName', "GTN", {domain: '', path: ''});
+		 Cookies.set('userName', "User1", {domain: '', path: ''});
+		 Cookies.set('channelName', "ch1", {domain: '', path: ''});
+		 Cookies.set('guest', 'true');
+		 Cookies.set('guestName', guestOrg);
+		 
+		 location.href="./search.html"  
+	 }
+	 if(org == "Elemica "){
+		 Cookies.set('orgName', "Elemica", {domain: '', path: ''});
+		 Cookies.set('userName', "User1", {domain: '', path: ''});
+		 Cookies.set('channelName', "ch1", {domain: '', path: ''});
+		 Cookies.set('guest', 'true');
+		 Cookies.set('guestName', guestOrg);
+		 
+		 location.href="./search.html"  
+     }
+	 if(org == "Dun and Bradstreet "){
+		 Cookies.set('orgName', "Dun&BradStreet", {domain: '', path: ''});
+		 Cookies.set('userName', "User1", {domain: '', path: ''});
+		 Cookies.set('channelName', "ch1", {domain: '', path: ''});
+		 Cookies.set('guest', 'true');
+		 Cookies.set('guestName', guestOrg);
+		 
+		 location.href="./search.html"  
+ 	}
+ })
+
  </script>
 </body>
 </html>

@@ -277,6 +277,7 @@ public class HyperledgerAPI {
 		// Send Query Proposal to all peers
 		//
 		client.setUserContext(user);
+		logger.info("Query chaincode: " + args[0]);
 		QueryByChaincodeRequest queryByChaincodeRequest = client.newQueryProposalRequest();
 		queryByChaincodeRequest.setArgs(args);
 		queryByChaincodeRequest.setFcn("invoke");

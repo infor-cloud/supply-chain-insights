@@ -13,6 +13,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.11.1/bootstrap-table.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
   
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-json/2.6.0/jquery.json.min.js"></script>
   
   
 <meta charset="ISO-8859-1">
@@ -43,9 +44,9 @@
   <button id="goBack" class="btn btn-link">&lt;&lt;Go Back</button>
 
 	<p> </p>
-	<form>
+	<form id="f">
 <h2 style="margin-left:1%"> Creating a Trading Partner</h2>
-  <div class="col-xs-4 ">
+  <div class="col-xs-4 " id="nameBlock">
     <label for="NameLabel">&emsp;Partner Name</label>
     <input type="text" class="form-control " id="name" placeholder="Big Corporation">
    </div>
@@ -108,74 +109,51 @@
 </div>
 
 	<br><br><br>
-  	<div id="IDContainer">
-	  <label for="contactNameLabel" style="margin-left:2%">&emsp;Identifier</label> <br>
-	  &emsp;&emsp; Scheme Name &emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp;&nbsp; ID
-	  <br>
-	    <div id="list">
-		  <div class="row br2">
-		    <span class="fi-list"></span> 
-		    <input id="schemeName" type="text" class="w180">
-		    <input id="id" type="text"class="w170">
-		    <span class="fi-x red o50 pl5"></span>
-		  </div>
-		</div>
-		<input id="btn-add" type="button" value="Add Identifier" class="mt10 btn btn-default" style="margin-left:2%"><br>
-	   </div><br><br>
+	   		
+		<div id="idContainer" >
+	    <label for="contactNameLabel"style="margin-left:2%">Identifier</label>
+		<table class="table-bordered" style="margin-left:1%" id="idTable">	
+			<thead>
+				<tr>
+					<th>Scheme Name</th>
+					<th>  ID </th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td class="schemeName">
+						<div class="form-group ">
+					 	   <input type="text" class="form-control" id="scheme" style="margin-top:5%;margin-bottom:5%" placeholder="Scheme Name" >
+   						 </div>
+					</td>
+					<td class="customerID">
+						<div class="form-group ">
+					 	   <input type="text" class="form-control" id="id" style="margin-top:5%;margin-bottom:5%" placeholder="111-222-333" >
+   						 </div>
+   					 </td>
+   					 <td>
+   					 	<button type="button" class="btn btn-danger btn-circle delete" id="remove"><i class="glyphicon glyphicon-remove"></i></button>
+   					 </td>
+   				</tr>
+   				<tr>
+   					<td>
+   						<div>
+   							<button type="button" class="btn btn-default add" id="AddIDS">New Identifier</button>
+   						</div>
+   					</td>
+   				</tr>
+			</tbody>
+		</table>
+	</div>
+  
+  <br>
+  <br>
   
   <button id="create" class="btn btn-primary"style="margin-left:2%; margin-bottom:3%">Create </button>
 
 
    <script type="text/javascript">
-   var identifier = {
-		list: {}
-   }
-   
-
-   
-// Manifest
-   var manifest = {
-		   data: {
-			   users:[] },
-		   ui: {
-		     "#list":{
-		       bind:"users",
-		       manifest:"UserForm",
-		       list:'>div.row',
-		       init: function ($control) {
-		         $control.sortable({ handle: ".fi-list" });
-		       }
-		     },
-		     "#btn-add": function (data, val) {
-		       if (null != val) this.my.insert("#list", {});
-		     }
-		   },
-		   style: {
-			   " #list>div": "padding:5px 0 10px 0;margin-left:2%;"
-		   },
-		   UserForm:{
-		     ui:{
-		       "#id":"id",
-		       "#schemeName":"schemeName",
-		       ".fi-x":{
-		         bind: function (data, val) {
-		           if (null != val) this.my.remove();
-		         },
-		         events:"click.my"
-		       }
-		     }
-		   },
-		   id:"Subform list"
-   };
-   function toObject(ids, schemeNames){
-	   var result ={}
-	   for (var i = 0; i < ids.length;i++){
-		   result[schemeNames[i].value] = ids[i].value
-	   }
-	   return result;
-	   
-   }
-   
    function checkCookies(){
 	   if( Cookies.get('orgName') && Cookies.get('userName') && Cookies.get('channelName'))
 	   		return true
@@ -195,28 +173,30 @@
 	   $(this).parents('tr').remove();
    });
    var idArray = [];
+   var testArray = [];
+   testArray[0] = "hi";
+   testArray[1] = "bye"
 
    $('table').on('click','.add',function(){
 		$('#idTable').append('<tr> <td class="schemeName"> <div class="form-group "> <input type="text" class="form-control" id="scheme" style="margin-top:5%;margin-bottom:5%" placeholder="Scheme Name" > </div> </td> <td class="customerID"> <div class="form-group "> <input type="text" class="form-control" id="id" style="margin-top:5%;margin-bottom:5%" placeholder="111-222-333" > </div> </td> <td> <button type="button" class="btn btn-danger btn-circle delete" id="remove"><i class="glyphicon glyphicon-remove"></i></button> </td> </tr> ');
 		$('#idTable').append('<tr> <td> <div> <button type="button" class="btn btn-default add" id="AddIDS1">New Identifier</button> </div> </td> </tr>')
 	    $(this).parents('tr').remove();
-	   
-	    var rows = $('#idTable > tbody > tr')
+   })
+   
+   function ids () {
+	   var rows = $('#idTable > tbody > tr')
 	    rows.each(function(index){
 	    	if (index < rows.length-1 && true && index >= 0) {
 		    	var schemey = $(this).find(".schemeName").find("input");
-		    	var idy = $(this).find(".customerID").find("input");
- 		    	alert(index + " " + schemey.val());
-		    	alert(index + " " + idy.val());
-		    	var obj = {};
-		    	obj[schemey] = idy;
-		    	idArray.push(obj);
-		    	$('h2').append("Hi" + JSON.stringify(idArray[0][schemey]));
-		    	
+		    	var idy = ($(this).find(".customerID").find("input"));
+		    	idArray.push({
+		             schemeName: schemey.val(), 
+		           	 id: idy.val()
+		         });
 	    	}
 	    })
-	   
-   })
+   }
+   
    function disableButtons() {
 	   $("#goBack").prop('disabled', true);
 	   $("#create").prop('disabled', true);
@@ -232,7 +212,6 @@
 	    $("#btn-add").trigger("click");
 	});
    
-   $("#IDContainer").my( manifest, identifier);
    
    $("#goBack").click(function(){
 	   location.href="./search.html"
@@ -240,15 +219,19 @@
    $("#create").click(function() {
 	   disableButtons()
 	   if(!$("#name").val()){
-		   alert("Name field cannot be blank!")
+			$("#error").remove();
+			$('form').prepend("<p id='error'></p>")
+			$("#error").prepend("Name must not be empty!" )
+			$("#error").css('color','red')
 		   enableButtons()
 		   
 	   }
 	   else if(!checkCookies()){
-		   alert("User info not set up!")
+
 		   location.href="./sessionProfile.html"
 	   }
 	   else{
+		ids();
 	   	$.ajax({
 				type: "GET",
 				url: "http://localhost:8080/fabric/create",
@@ -259,10 +242,9 @@
 				},
 				error : function(data) {
 					$("#error").remove();
-					$('body').prepend("<p id='error'></p>")
+					$('form').prepend("<p id='error'></p>")
 					$('#error').append(JSON.stringify (data))
 					$('#error').css('color', 'red')
-					alert('Error!')
 					enableButtons();
 				},
 				data: {name: 			$("#name").val(), 
@@ -273,7 +255,7 @@
 					contactName: 		$("#contactName").val(),
 					contactEmail: 		$("#contactEmail").val(),
 					contactTelephone: 	$("#contactTelephone").val(),
-					identifier: 		JSON.stringify(identifier.users),
+					identifier: 		JSON.stringify(idArray),
 					userName: 			Cookies.get('userName'),
 					orgName: 			Cookies.get('orgName'),
 					channelName: 		Cookies.get('channelName'),

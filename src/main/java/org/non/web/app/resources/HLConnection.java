@@ -21,6 +21,7 @@ import org.hyperledger.fabric.sdk.Peer;
 import org.non.api.code.HLConfigHelper;
 import org.non.api.code.HyperledgerAPI;
 import org.non.api.model.Connection;
+import org.non.api.code.NetworkBlockListener;
 import org.non.api.model.TradingPartner;
 import org.non.config.ChannelDetails;
 import org.non.config.HLConfiguration;
@@ -96,6 +97,10 @@ public class HLConnection {
 				//HyperledgerAPI.installChaincode(client, org.getPeerAdmin(), org.getPeers(), transactionChaincodeID);
 			}
 
+			/*Register a BlockListener on channel*/
+			NetworkBlockListener listener = new NetworkBlockListener();
+			ch1.registerBlockListener(listener);
+			
 			/* Initiate Chaincode on peers on the channel */
 			//HyperledgerAPI.initiateChaincode(client, transactionChaincodeID, ch1, "scripts/chaincodeendorsementpolicy.yaml");
 			CompletableFuture<TransactionEvent> initFuture = HyperledgerAPI.initiateChaincode(client, chaincodeID, ch1,
