@@ -24,6 +24,7 @@ import org.junit.Test;
 import org.non.api.code.HLConfigHelper;
 import org.non.api.code.HyperledgerAPI;
 import org.non.api.code.HyperledgerTestAPI;
+import org.non.api.code.NetworkBlockListener;
 import org.non.config.ChannelDetails;
 import org.non.config.HLConfiguration;
 import org.non.config.Organization;
@@ -71,6 +72,9 @@ public class ChannelUtilTest{
 			/* Run the test for knowing how to use the API. */
 
 			////////////////////////////////////////////////
+			NetworkBlockListener listener = new NetworkBlockListener();
+			ch1.registerBlockListener(listener);
+			
 			HyperledgerTestAPI.showPeersOnChannel(ch1);
 
 			String sampleKey = "Zara";
@@ -88,15 +92,27 @@ public class ChannelUtilTest{
 					invokeFuture.thenApply(invokeTransactionEvent -> {
 						assertTrue(invokeTransactionEvent.isValid());
 						out("Finished transaction with transaction id %s", invokeTransactionEvent.getTransactionID());
-						String payload = null;
+						
 						try {
-							List<Peer> orgPeers = thisOrg.getPeers();
-							payload = HyperledgerAPI.query(config.getOrgDetailsByName(ORG_NAME_DNB).getUserByName(TESTUSER_1_NAME),
-									client, chaincodeID, ch1, sampleKey,orgPeers);
+							CompletableFuture<TransactionEvent> invokeFuture2 = HyperledgerAPI.invoke(
+									new String[] { "modify", sampleKey, "Name: Zara, ID: 123-456-789" }, config.getOrgDetailsByName(ORG_NAME_GTN).getUserByName(TESTUSER_1_NAME), client, chaincodeID, ch1);
+							invokeFuture2.thenApply(invokeTransactionEvent2 -> {
+								assertTrue(invokeTransactionEvent.isValid());
+								out("Finished transaction with transaction id %s", invokeTransactionEvent.getTransactionID());
+								String payload = null;
+								try {
+									List<Peer> orgPeers = thisOrg.getPeers();
+									payload = HyperledgerAPI.query(new String[] { "getHistory", sampleKey}, config.getOrgDetailsByName(ORG_NAME_DNB).getUserByName(TESTUSER_1_NAME),
+											client, chaincodeID, ch1,orgPeers);
+								} catch (Exception e) {
+									e.printStackTrace();
+								}
+								out("Query payload of %s returned %s", sampleKey, payload);
+								return null;
+							}).get(TRANSACTIONWAITTIME, TimeUnit.SECONDS);
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
-						out("Query payload of %s returned %s", sampleKey, payload);
 						return null;
 					}).get(TRANSACTIONWAITTIME, TimeUnit.SECONDS);
 
@@ -117,6 +133,7 @@ public class ChannelUtilTest{
 
 			}).get(TRANSACTIONWAITTIME, TimeUnit.SECONDS);
 
+			
 			out("That's all!");
 
 		} catch (Exception e) {
