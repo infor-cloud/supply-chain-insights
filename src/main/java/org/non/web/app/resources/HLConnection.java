@@ -50,7 +50,6 @@ public class HLConnection {
 
 	// private String ORG_NAME_ELEMICA = "Elemica";
 	// private String ORG_NAME_DNB = "Dun&BradStreet";
-		
 
 	public HFClient getClient() {
 		return client;
@@ -77,7 +76,8 @@ public class HLConnection {
 		chainCodeID = ChaincodeID.newBuilder().setName(CHAIN_CODE_NAME).setVersion(CHAIN_CODE_VERSION)
 				.setPath(CHAIN_CODE_PATH).build();
 
-
+		transactionChaincodeID = ChaincodeID.newBuilder().setName(CONNECTION_CHAIN_CODE_NAME)
+				.setVersion(CONNECTION_CHAIN_CODE_VERSION).setPath(CONNECTION_CHAIN_CODE_PATH).build();
 		try {
 			/* Construct Channel */
 			Organization thisOrg = config.getOrgDetailsByName(ORG_NAME_GTN);
@@ -94,7 +94,7 @@ public class HLConnection {
 			/* Install Chaincode on peers */
 			for (Organization org : channelorgs) {
 				HyperledgerAPI.installChaincode(client, org.getPeerAdmin(), org.getPeers(), chaincodeID);
-				//HyperledgerAPI.installChaincode(client, org.getPeerAdmin(), org.getPeers(), transactionChaincodeID);
+				HyperledgerAPI.installChaincode(client, org.getPeerAdmin(), org.getPeers(), transactionChaincodeID);
 			}
 
 			/*Register a BlockListener on channel*/
@@ -102,7 +102,7 @@ public class HLConnection {
 			ch1.registerBlockListener(listener);
 			
 			/* Initiate Chaincode on peers on the channel */
-			//HyperledgerAPI.initiateChaincode(client, transactionChaincodeID, ch1, "scripts/chaincodeendorsementpolicy.yaml");
+			HyperledgerAPI.initiateChaincode(client, transactionChaincodeID, ch1, "scripts/chaincodeendorsementpolicy.yaml");
 			CompletableFuture<TransactionEvent> initFuture = HyperledgerAPI.initiateChaincode(client, chaincodeID, ch1,
 					"scripts/chaincodeendorsementpolicy.yaml");
 			int TRANSACTIONWAITTIME = 140000;
@@ -145,20 +145,43 @@ public class HLConnection {
 		return hlconnection;
 	}
 
-	// public Block getBlock(){
+  // public Block getBlock(){
 	// return block;
 	// }
+	public String createConnection(String orgName, String userName, String channelName, Connection connect)
+			throws Exception {
+		logger.info("Adding a new connection!");
+		Channel ch = client.getChannel(channelName.toLowerCase());
+
+		String connectString = connect.toJSONString();
+		if (ch == null) {
+			logger.info("No channel exists for channel name: %s" + channelName);
+			return ("ERROR: No channel exists for channel name " + channelName);
+		} else if (connectString == null) {
+			System.out.println("Error parsing the Trading Partner to a string");
+			return ("ERROR: Improper input of params");
+		} else {
+			String args[] = { "add", connect.getComp1(), connect.getComp2(), connectString };
+
+			HyperledgerAPI.invoke(args, config.getOrgDetailsByName(orgName).getUserByName(userName), client,
+					transactionChaincodeID, ch);
+			return ("SUCCESS");
+		}
+
+	}
 	
 	public String createPartner(String orgName, String userName, String channelName, TradingPartner tradingPartner, String functionName)
 			throws Exception {
 		logger.info("Got Request to add a new Trading Partner");
 		/* Get the channel specified from the UI */
 		Channel ch = client.getChannel(channelName.toLowerCase());
-		
-		/* Convert the trading partner into something readable by the chaincode */
+
+		/*
+		 * Convert the trading partner into something readable by the chaincode
+		 */
 		String tradeString = tradingPartner.toJSONString();
 
-		/* Make sure the information provided exists for this channel*/
+		/* Make sure the information provided exists for this channel */
 		if (ch == null) {
 			logger.info("No channel exists for channel name: %s" + channelName);
 			return ("ERROR: No channel exists for channel name " + channelName);
@@ -275,6 +298,5 @@ public class HLConnection {
 			System.out.println(user.toString());
 		}
 	}
-
 
 }

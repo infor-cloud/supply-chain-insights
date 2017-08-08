@@ -4,182 +4,289 @@
 
 <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.1.4/js.cookie.js"></script>
+<script
+	src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.1.4/js.cookie.js"></script>
 
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" >
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" ></script>
+<link rel="stylesheet"
+	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<link rel="stylesheet"
+	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css">
+<script
+	src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 
 <meta charset="ISO-8859-1">
 <title>Setting User Information</title>
 </head>
 <style>
-.take-all-space-you-can{
-    width:50%;
-}</style>
+.take-all-space-you-can {
+	width: 33%;
+	margin-top:1%
+}
+</style>
 <body>
- <ul class="nav nav-tabs">
-  <li role="presentation" class="active take-all-space-you-can"><a href="#">My Profile</a></li>
-  <li role="presentation" class="take-all-space-you-can"><a href="./search.html"">Trading Partners</a></li>
-</ul>
-  <button class="btn btn-primary pull-right" id="changeUser" style="margin-right:2%">Change User</button>
- <div class="container" id="info">
- 
- </div>
+	<ul class="nav nav-tabs">
+		<li role="presentation" class="active take-all-space-you-can"><a
+			href="#">My Profile</a></li>
+		<li role="presentation" class="take-all-space-you-can" id="partner"><a
+			href="#">Trading Partners</a></li>
+		<li role="presentation"class="take-all-space-you-can"><a href="./searchConnection.html">Connections</a></li>
+	</ul>
+	<button class="btn btn-primary pull-right" id="changeUser"
+		style="margin-right: 2%">Change User</button>
+	<div class="container" id="info"></div>
 
- <br>
- <br>
-<button class="btn btn-default center-block" id="gtn">
-     <img src="http://www.scf-forum.com/uploads/1/0/7/8/10788161/gt-nexus-inforco-rgb-1200px_3_orig.png" width="300"  /> 
-</button>
-<br>
-<button class="btn btn-default center-block"  id="dnb">
-     <img src="http://www.dnb.com.lv/images/DB_logo_Center.png" width="300"/> 
-</button>
-<br>
-<button class="btn btn-default center-block"  id="elemica">
-     <img src="http://www.hubga.com/wp-content/uploads/2016/01/ElemicaLogo.png" width="300"/> 
-</button>
+	<br>
+	<br>
+	<button class="btn btn-default center-block" id="gtn">
+		<img
+			src="http://www.scf-forum.com/uploads/1/0/7/8/10788161/gt-nexus-inforco-rgb-1200px_3_orig.png"
+			width="300" />
+	</button>
+	<br>
+	<button class="btn btn-default center-block" id="dnb">
+		<img src="http://www.dnb.com.lv/images/DB_logo_Center.png" width="300" />
+	</button>
+	<br>
+	<button class="btn btn-default center-block" id="elemica">
+		<img
+			src="http://www.hubga.com/wp-content/uploads/2016/01/ElemicaLogo.png"
+			width="300" />
+	</button>
 
-<br>
-<br>
-<br>
- <div class="col-xs-4 btn-group dropup" id="otherOrgs">
-    <label for="otherOrgLabel">Other Org: </label>
-    <input type="text" class="form-control " id="name" placeholder="Big Corporation">
-    <span class="btn-group">
-    	<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-   			 Choose Org <span class="caret"></span>
-  		</button>
-  		<ul class="dropdown-menu">
-    		 <li><a href="#" class="active">GT Nexus</a></li>
-     		 <li><a href="#" class="inactive">Elemica</a></li>
-     		 <li><a href="#" class="inactive">Dun and Bradstreet</a></li>
-  		</ul>
-    </span>
-    <br><br>
-    <button id="setOrg" class="btn btn-primary"style="margin-left:2%; margin-bottom:3%">Log In </button>
-</div>
+	<br>
+	<br>
+	<br>
+	
+  <div class="col-sm-4 " id="otherOrgs">
+  <label for="otherOrgLabel" id="otherOrg">Other Organization: </label>
+    <div class="input-group">
+      
+      <input type="text" class="form-control" aria-label="..." placeholder="Big Corporation" id="name">
+      <div class="input-group-btn dropup">
+        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Choose organization <span class="caret"></span></button>
+        <ul class="dropdown-menu dropdown-menu-right">
+          <li><a href="#">GT Nexus</a></li>
+          <li><a href="#">Elemica</a></li>
+          <li><a href="#">Dun and Bradstreet</a></li>
+        </ul>
+
+      </div><!-- /btn-group -->
+    </div><!-- /input-group -->
+            <br>
+     <button type="button" class="btn btn-primary" id="setOrg">Set Organization</button>
+     <button type="button" class="btn btn-danger" id="discardChanges" style="margin-left:5%">Discard Changes</button>
+  </div><!-- /.col-lg-6 -->
 
 
- <script type="text/javascript">
 
- 
- $("#gtn").click(function(){
-		 Cookies.set('orgName', "GTN", {domain: '', path: ''});
-		 Cookies.set('userName', "User1", {domain: '', path: ''});
-		 Cookies.set('channelName', "ch1", {domain: '', path: ''});
-		 Cookies.set('guest', 'false');
-		 Cookies.set('guestName', "");
-	 
-		location.href="./search.html" 
- })
- 
-  
- $("#dnb").click(function(){
-		 Cookies.set('orgName', "Dun&BradStreet", {domain: '', path: ''});
-		 Cookies.set('userName', "User1", {domain: '', path: ''});
-		 Cookies.set('channelName', "ch1", {domain: '', path: ''});
-		 Cookies.set('guest', 'false');
-		 Cookies.set('guestName', "");
-		 
-			location.href="./search.html"  
- })
- 
-  
- $("#elemica").click(function(){
-		 Cookies.set('orgName', "Elemica", {domain: '', path: ''});
-		 Cookies.set('userName', "User1", {domain: '', path: ''});
-		 Cookies.set('channelName', "ch1", {domain: '', path: ''});
-		 Cookies.set('guest', 'false');
-		 Cookies.set('guestName', "");
-		 
-			location.href="./search.html"  
- })
- 
- $('#changeUser').click(function(){
-	 $('.container').empty();
-	 $('#changeUser').hide();
-	 $('#gtn').show();
-	 $('#dnb').show()
-	 $('#elemica').show();
-	 $('#otherOrgs').show();
- })
- 
- function showUser(){
-	 	if( Cookies.get('guest') == 'true') {
-	 		$('.container').append("<br><br><br><p><strong>Guest Org: " + Cookies.get('guestName') + " <br>using: </strong></p>");
-	 		
-	 	}else {
-			$('.container').append("<br><br><br><p><strong>Current Organization:</strong></p>");
-	 	}
-		var org = Cookies.get('orgName')
-		if(org == "GTN")
-			$('.container').append(' <img src="http://www.scf-forum.com/uploads/1/0/7/8/10788161/gt-nexus-inforco-rgb-1200px_3_orig.png" width="300"/>') 
-		else if (org == "Dun&BradStreet")
-			$('.container').append('<img src="http://www.dnb.com.lv/images/DB_logo_Center.png"  width="300"/>') 
-		else if (org == "Elemica")
-			$('.container').append('<img src="http://www.hubga.com/wp-content/uploads/2016/01/ElemicaLogo.png" width="300"/>')
- }
- 
-	 
- $(function(){
-	 if( Cookies.get('orgName')) {
-		showUser();
-		$('#changeUser').show();
-		$('#gtn').hide();
-		$('#dnb').hide();
-		$('#elemica').hide();
-		$('#otherOrgs').hide();
-	 }
-	 else {
-		$('#otherOrgs').show();
-		$('#changeUser').hide();
-		$('#gtn').show();
-		$('#dnb').show();
-		$('#elemica').show();
-	 }
- })
- 
-  $(".dropdown-menu li a").click(function(){
-    
-    $(".btn:first-child").text($(this).text());
-    $(".btn:first-child").append(' <span class="caret"></span>')
-    $(".btn:first-child").val($(this).text());
-  });
- 
- $("#setOrg").click(function(){
-	 var org = $(".btn:first-child").text();
-	 var guestOrg = $("#name").val();
-	 if(org == "GT Nexus "){
-		 Cookies.set('orgName', "GTN", {domain: '', path: ''});
-		 Cookies.set('userName', "User1", {domain: '', path: ''});
-		 Cookies.set('channelName', "ch1", {domain: '', path: ''});
-		 Cookies.set('guest', 'true');
-		 Cookies.set('guestName', guestOrg);
-		 
-		 location.href="./search.html"  
-	 }
-	 if(org == "Elemica "){
-		 Cookies.set('orgName', "Elemica", {domain: '', path: ''});
-		 Cookies.set('userName', "User1", {domain: '', path: ''});
-		 Cookies.set('channelName', "ch1", {domain: '', path: ''});
-		 Cookies.set('guest', 'true');
-		 Cookies.set('guestName', guestOrg);
-		 
-		 location.href="./search.html"  
-     }
-	 if(org == "Dun and Bradstreet "){
-		 Cookies.set('orgName', "Dun&BradStreet", {domain: '', path: ''});
-		 Cookies.set('userName', "User1", {domain: '', path: ''});
-		 Cookies.set('channelName', "ch1", {domain: '', path: ''});
-		 Cookies.set('guest', 'true');
-		 Cookies.set('guestName', guestOrg);
-		 
-		 location.href="./search.html"  
- 	}
- })
+	<script type="text/javascript">
+		$("#gtn").click(function() {
+			Cookies.set('orgName', "GTN", {
+				domain : '',
+				path : ''
+			});
+			Cookies.set('userName', "User1", {
+				domain : '',
+				path : ''
+			});
+			Cookies.set('channelName', "ch1", {
+				domain : '',
+				path : ''
+			});
+			Cookies.set('guest', 'false');
+			Cookies.set('guestName', "");
 
- </script>
+			location.href = "./search.html"
+		})
+
+		$("#dnb").click(function() {
+			Cookies.set('orgName', "Dun&BradStreet", {
+				domain : '',
+				path : ''
+			});
+			Cookies.set('userName', "User1", {
+				domain : '',
+				path : ''
+			});
+			Cookies.set('channelName', "ch1", {
+				domain : '',
+				path : ''
+			});
+			Cookies.set('guest', 'false');
+			Cookies.set('guestName', "");
+
+			location.href = "./search.html"
+		})
+
+		$("#elemica").click(function() {
+			Cookies.set('orgName', "Elemica", {
+				domain : '',
+				path : ''
+			});
+			Cookies.set('userName', "User1", {
+				domain : '',
+				path : ''
+			});
+			Cookies.set('channelName', "ch1", {
+				domain : '',
+				path : ''
+			});
+			Cookies.set('guest', 'false');
+			Cookies.set('guestName', "");
+
+			location.href = "./search.html"
+		})
+
+		$('#changeUser').click(function() {
+			$('.container').empty();
+			$('#changeUser').hide();
+			$('#gtn').show();
+			$('#dnb').show()
+			$('#elemica').show();
+			$('#otherOrgs').show();
+		})
+		
+		$('#discardChanges').click(function(){
+			showUser();
+			$('#changeUser').show();
+			$('#gtn').hide();
+			$('#dnb').hide();
+			$('#elemica').hide();
+			$('#otherOrgs').hide();
+		})
+		
+		$('#partner').click(function(){
+			$("#info").empty();
+			if(Cookies.get('orgName')){
+				location.href="./search.html"
+			}
+			else {
+				$('#info').append("Please select your organization!");
+				$('#info').css('color','red')
+			}
+		})
+
+		function showUser() {
+			if (Cookies.get('guest') == 'true') {
+				$('.container').append(
+						"<br><br><br><p><strong>Guest Org: "
+								+ Cookies.get('guestName')
+								+ " <br>using: </strong></p>");
+
+			} else {
+				$('.container')
+						.append(
+								"<br><br><br><p><strong>Current Organization:</strong></p>");
+			}
+			var org = Cookies.get('orgName')
+			if (org == "GTN")
+				$('.container')
+						.append(
+								' <img src="http://www.scf-forum.com/uploads/1/0/7/8/10788161/gt-nexus-inforco-rgb-1200px_3_orig.png" width="300"/>')
+			else if (org == "Dun&BradStreet")
+				$('.container')
+						.append(
+								'<img src="http://www.dnb.com.lv/images/DB_logo_Center.png"  width="300"/>')
+			else if (org == "Elemica")
+				$('.container')
+						.append(
+								'<img src="http://www.hubga.com/wp-content/uploads/2016/01/ElemicaLogo.png" width="300"/>')
+		}
+
+		$(function() {
+			if (Cookies.get('orgName')) {
+				showUser();
+				$('#changeUser').show();
+				$('#gtn').hide();
+				$('#dnb').hide();
+				$('#elemica').hide();
+				$('#otherOrgs').hide();
+			} else {
+				$('#otherOrgs').show();
+				$('#discardChanges').hide();
+				$('#changeUser').hide();
+				$('#gtn').show();
+				$('#dnb').show();
+				$('#elemica').show();
+			}
+		})
+
+		$(".dropdown-menu li a").click(function() {
+
+			$(".btn:first-child").text($(this).text());
+			$(".btn:first-child").append(' <span class="caret"></span>')
+			$(".btn:first-child").val($(this).text());
+		});
+
+		$("#setOrg").click(function() {
+			$('#error').empty();
+			var org = $(".btn:first-child").text();
+			var guestOrg = $("#name").val();
+			if (!guestOrg) {
+				$('#otherOrgs').prepend("<p id='error'></p>")
+				$("#error").append("Enter your org name")
+				$("#error").css('color', 'red')
+			} else {
+				if (org == "GT Nexus ") {
+					Cookies.set('orgName', "GTN", {
+						domain : '',
+						path : ''
+					});
+					Cookies.set('userName', "User1", {
+						domain : '',
+						path : ''
+					});
+					Cookies.set('channelName', "ch1", {
+						domain : '',
+						path : ''
+					});
+					Cookies.set('guest', 'true');
+					Cookies.set('guestName', guestOrg);
+
+					location.href = "./search.html"
+				}
+				if (org == "Elemica ") {
+					Cookies.set('orgName', "Elemica", {
+						domain : '',
+						path : ''
+					});
+					Cookies.set('userName', "User1", {
+						domain : '',
+						path : ''
+					});
+					Cookies.set('channelName', "ch1", {
+						domain : '',
+						path : ''
+					});
+					Cookies.set('guest', 'true');
+					Cookies.set('guestName', guestOrg);
+
+					location.href = "./search.html"
+				}
+				if (org == "Dun and Bradstreet ") {
+					Cookies.set('orgName', "Dun&BradStreet", {
+						domain : '',
+						path : ''
+					});
+					Cookies.set('userName', "User1", {
+						domain : '',
+						path : ''
+					});
+					Cookies.set('channelName', "ch1", {
+						domain : '',
+						path : ''
+					});
+					Cookies.set('guest', 'true');
+					Cookies.set('guestName', guestOrg);
+
+					location.href = "./search.html"
+				} else {
+					$('#otherOrgs').prepend("<p id='error'></p>")
+					$("#error").append("Please Select an org")
+					$("#error").css('color', 'red')
+				}
+			}
+		})
+	</script>
 </body>
 </html>

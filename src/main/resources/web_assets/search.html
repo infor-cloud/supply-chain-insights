@@ -17,20 +17,24 @@
 </head>
 <style>
 .take-all-space-you-can{
-    width:50%;
+    width:33%;
+    margin-top:1%
 }</style>
 <body>
 
 
 <ul class="nav nav-tabs">
   <li role="presentation"class="take-all-space-you-can"><a href="./sessionProfile.html">My Profile</a></li>
-  <li role="presentation"class="active take-all-space-you-can"><a href="./search.html"">Trading Partners</a></li>
+  <li role="presentation"class="active take-all-space-you-can"><a href="./search.html">Trading Partners</a></li>
+  <li role="presentation"class="take-all-space-you-can"><a href="./searchConnection.html">Connections</a></li>
 </ul>
+
 <h3 class="text-success" style="margin-left:5%" id="added">Adding Partner was successful.</h3>
 <h3 class="text-danger" style = "margin-left:5%" id="noName">Company Name cannot be empty!</h3>
 <button id="addTradingPartner" class="btn btn-primary pull-right" style="margin-right:2%">Add Trading Partner </button>
    <h1></h1>
    <br>
+   
  <p> &emsp; Name of Company to search </p>
  <div class="col-lg-6" id="search">
     <div class="input-group">
@@ -48,8 +52,6 @@
       
     </div><!-- /input-group -->
   </div><!-- /.col-lg-6 -->
-  
-   
    <script type="text/javascript">
    
    function checkCookies(){
@@ -58,6 +60,9 @@
 	   return false;
    }
    $(function(){
+	   if(!checkCookies()){
+		   location.href ="./sessionProfile.html"
+	   }
 	   $('h1').empty();
 	   $("#submit").prop('disabled', true);
 	   $('#noName').hide();
@@ -67,7 +72,8 @@
 	   else{
 		   $('#showUnverified').hide();
 	   }
-	   if(Cookies.get('added') == "true"){
+
+     if(Cookies.get('added') == "true"){
 		   $('#added').show();
 	   }
 	   else{
@@ -149,17 +155,17 @@
 			success: function(data) {
 				obj = JSON.parse(data);
 				$('body').append ("<div id='searchResults'></div>")
-				$('#searchResults').append ("<table class='table table-bordered' id=res>" +
+				$('#searchResults').append ("<table class='table table-bordered col-xs-6' id=res>" +
 												"<tbody>" + 
-													"<tr><td>Name</td><td>" + obj.name + "</td></tr>" + 
-													"<tr><td>Website URI</td><td>" + obj.websiteURI + "</td></tr>" + 
-													"<tr><td>Street Name</td><td>" + obj.streetName + "</td></tr>" + 
-													"<tr><td>City Name</td><td>" + obj.cityName + "</td></tr>" + 
-													"<tr><td>Postal Zone</td><td>" + obj.postalZone + "</td></tr>" + 
-													"<tr><td>Contact Name</td><td>" + obj.contactName + "</td></tr>" + 
-													"<tr><td>Contact Email</td><td>" + obj.contactEmail + "</td></tr>" + 
-													"<tr><td>Contact Telephone</td><td>" + obj.contactTelephone + "</td></tr>");
-				$.each(obj.idList,function(index, value){
+													"<tr><td>Name</td><td>" + data.name + "</td></tr>" + 
+													"<tr><td>Website URI</td><td>" + data.websiteURI + "</td></tr>" + 
+													"<tr><td>Street Name</td><td>" + data.streetName + "</td></tr>" + 
+													"<tr><td>City Name</td><td>" + data.cityName + "</td></tr>" + 
+													"<tr><td>Postal Zone</td><td>" + data.postalZone + "</td></tr>" + 
+													"<tr><td>Contact Name</td><td>" + data.contactName + "</td></tr>" + 
+													"<tr><td>Contact Email</td><td>" + data.contactEmail + "</td></tr>" + 
+													"<tr><td>Contact Telephone</td><td>" + data.contactTelephone + "</td></tr>");
+				$.each(data.idList,function(index, value){
 					$('#res').append("<tr><td> Identifier:" + value.schemeName + "</td><td>" + value.id + "</td><tr>")
 				});
 				

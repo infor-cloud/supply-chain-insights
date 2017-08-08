@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>	
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.1.4/js.cookie.js"></script>
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" >
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" ></script>
+  
+  
+  
+<meta charset="ISO-8859-1">
+<title>Searching for Trading Partners</title>
+</head>
+<style>
+.take-all-space-you-can{
+    width:33%;
+    margin-top:1%
+}</style>
+<body>
+
+
+<ul class="nav nav-tabs">
+  <li role="presentation"class="take-all-space-you-can"><a href="./sessionProfile.html">My Profile</a></li>
+  <li role="presentation"class="take-all-space-you-can"><a href="./search.html">Trading Partners</a></li>
+  <li role="presentation"class="active take-all-space-you-can"><a href="./searchConnection.html">Connections</a></li>
+</ul>
+
+<h3 class="text-success" style="margin-left:5%" id="added">Adding Connection was successful.</h3>
+<h3 class="text-danger" style = "margin-left:5%" id="noName">Company Name cannot be empty!</h3>
+<button id="addConnection" class="btn btn-primary pull-right" style="margin-right:2%">Add Connection </button>
+   <h1></h1>
+   <br>
+   <button id="modify" class="btn btn-success pull-right" style="margin-right:2%">Modify </button>
+   
+ <p> &emsp; Name of Company to search </p>
+ <div class="col-lg-6" id="search">
+    <div class="input-group">
+      <input type="text" class="form-control" id="compName" placeholder="Search for...">
+      <span class="input-group-btn">
+        <button class="btn btn-default" type="button" id="submit">Search</button>
+      </span>
+    </div><!-- /input-group -->
+  </div><!-- /.col-lg-6 -->   
+  
+   <script type="text/javascript">
+   
+   function checkCookies(){
+	   if( Cookies.get('orgName') && Cookies.get('userName') && Cookies.get('channelName'))
+	   		return true
+	   return false;
+   }
+   $(function(){
+	   if(!checkCookies()){
+		   location.href ="./sessionProfile.html"
+	   }
+	   $('h1').empty();
+	   $("#submit").prop('disabled', true);
+	   $('#noName').hide();
+	   $('#modify').hide();
+	   if(Cookies.get('added') == "true"){
+		   $('#added').show();
+	   }
+	   else{
+		   $('#added').hide();
+	   }
+	   
+	   if(Cookies.get('guest') == 'true'){
+		   $('#addConnection').hide();
+		   $('h1').append(" &emsp;Welcome ", Cookies.get('orgName'), " Guest!")
+	   }
+	   else {
+		   $('#addConnection').show();
+		   $('h1').append(" &emsp;Welcome ", Cookies.get('orgName'), " User!")
+	   }
+	   
+   })
+   
+   $('#addConnection').click(function(){
+	   location.href="./createConnect.html"
+   })
+   
+   
+   $("#compName").keypress(function(e) {
+	   $('#noName').hide();
+	   $("#submit").prop('disabled', false);
+	    if(e.which == 13) {
+	    	$("#submit").click();
+	    }
+	});
+   window.onbeforeunload = function () {
+	   Cookies.set('added', "false", {domain: '', path: ''});
+   };
+   $('#compName').on('blur', function () {
+	   $('#error').remove();
+		if(!$('#compName').val()){
+			$('#noName').show();
+			$("#submit").prop('disabled', true);
+	 	   //$(this).closest('.input-group')
+	     	 //  .addClass('has-error has-feedback')
+	 	     //  .prepend('<span class="help-block" id=error>Company Name can not be empty!</span>');
+		}
+		else {
+			$('#noName').hide();
+			   $("#submit").prop('disabled', false);
+			  $(this).closest('.input-group')
+	     	   .removeClass('has-error has-feedback')
+		}
+		
+	});
+   
+   $("#submit").click(function() {
+	   $("#goBack").prop('disabled', true);
+	   $("#create").prop('disabled', true);
+		$("#searchResults").remove()
+		$("#error").remove();
+	   if(!$("#compName").val()) {
+		   $("#goBack").prop('disabled', false);
+		   $("#create").prop('disabled', false);
+	   } 
+	   else if (!checkCookies()){
+		   location.href="./sessionProfile.html"
+	   }
+	   else {
+		$.ajax({
+			type: "GET",
+			url: "http://localhost:8080/fabric/queryConnection",
+			dataType: "json",
+			success: function(data) {
+				var obj = JSON.parse(data);
+				$('body').append ("<div id='searchResults'></div>")
+				$('#searchResults').append ("<table class='table table-bordered col-xs-6' id=res>" +
+												"<tbody>" + 
+													"<tr><td>Company</td><td>" + obj.comp1 + "</td></tr>" + 
+													"<tr><td>Company</td><td>" + obj.comp2 + "</td></tr>" + 
+													"<tr><td>Status</td><td>" + obj.status + "</td></tr>" + 
+													"<tr><td>Business Process</td><td>" + obj.businessProcess + "</td></tr></tbody>");
+				$("#goBack").prop('disabled', false);
+				$("#create").prop('disabled', false);
+				$('#modify').show();
+			},
+			error: function(data){
+				$('#search').append("<p id='error'></p>")
+				$("#error").append(data.responseText )
+				$("#error").css('color','red')
+				$("#goBack").prop('disabled', false);
+				$("#create").prop('disabled', false);
+				$('#modify').hide();
+			},
+			data: {orgName: Cookies.get('orgName'),
+				userName: Cookies.get('userName'),
+				channelName: Cookies.get('channelName'),
+				compName: $("#compName").val()
+			}
+		});
+	   }
+	});
+   </script>
+   
+   
+</body>
+</html>

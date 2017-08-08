@@ -83,14 +83,9 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response{
 		return t.queryVerified(stub, args)
 	}
 	
-	if args[0] == "addConnection" {
-		return t.addConnection(stub, args)
+  if args[0] == "queryByRange" {
+		return t.queryByRange(stub, args)
 	}
-	
-	if args[0] == "queryConnection" {
-		return t.queryConnection(stub, args)
-	}
-	
 	if args[0] == "getHistory" {
 		return t.getHistory (stub, args)	
 	}
@@ -160,7 +155,6 @@ func (t *SimpleChaincode) add (stub shim.ChaincodeStubInterface, args[] string) 
 	}
 	var key string
 	var err error
-	
 	key = args[1]
 	if args[3]=="create"{
 		state, err:= stub.GetState(key)
@@ -177,6 +171,10 @@ func (t *SimpleChaincode) add (stub shim.ChaincodeStubInterface, args[] string) 
 	
 	buf, err := json.Marshal(args[2])
 	
+	if err != nil {
+		fmt.Println(err.Error());
+		return shim.Error( err.Error())
+	}
 	
 	id := make([]Identifier,0);
 		
@@ -196,7 +194,6 @@ func (t *SimpleChaincode) add (stub shim.ChaincodeStubInterface, args[] string) 
 		index := "verified~name"
 		verifiedNameIndexKey, _ := stub.CreateCompositeKey(index, []string{"Unverified",data.Name})
 		stub.DelState(verifiedNameIndexKey)
-
 	} else {
 		fmt.Println("Not verified :(")
 		data.Verified = false;
@@ -218,7 +215,6 @@ func (t *SimpleChaincode) add (stub shim.ChaincodeStubInterface, args[] string) 
 	value := []byte{0x00}
 	fmt.Println(verifiedNameIndexKey)
 	stub.PutState(verifiedNameIndexKey, value)
-	
 	return shim.Success(nil)
 }
 
@@ -296,9 +292,9 @@ func (t *SimpleChaincode) query (stub shim.ChaincodeStubInterface, args []string
 func (t *SimpleChaincode) queryVerified(stub shim.ChaincodeStubInterface, args[]string) pb.Response{
     fmt.Println("queryVerified");
     //Uncomment after updating HLConnection
-   // if t.isVerified(stub) == false {
-   //     return shim.Error("You're not allowed to be here")
-   // } 
+    if t.isVerified(stub) == false {
+       return shim.Error("You're not allowed to be here")
+    } 
     verified := args[1]
     //verified := "Unverified"
     
@@ -343,36 +339,6 @@ func (t *SimpleChaincode) queryVerified(stub shim.ChaincodeStubInterface, args[]
     
 }
 
-func (t *SimpleChaincode) queryConnection (stub shim.ChaincodeStubInterface, args []string) pb.Response {
-	fmt.Println("####QUERY CONNECTION#####")
-	if len(args) != 2 {
-		return shim.Error ("Incorrect number of parameters, expecting 2")
-	}
-	
-	company := args[1]
-	fmt.Println("Looking for connections with " + company);
-	companyIterator, err := stub.GetStateByPartialCompositeKey("comp1~comp2", []string{company})
-	if err != nil {
-		fmt.Println("Error getting keys from ledger")
-		return shim.Error("Error getting keys from the ledger")
-	}
-	defer companyIterator.Close()
-	var i int;
-	for i = 0; companyIterator.HasNext(); i++ {
-		responseRange, err := companyIterator.Next()
-		if err != nil {	
-			fmt.Println("Error getting response from iterator")
-			return shim.Error("Problem getting the response from iterator")
-		}	
-		fmt.Println(responseRange.Value);
-		var connection string
-		json.Unmarshal(responseRange.Value, &connection)
-		fmt.Println("Connection: " + connection);
-	}
-	fmt.Println("Finishing query connections");	
-	return shim.Success(nil)
-}
-
 func (t *SimpleChaincode) modify (stub shim.ChaincodeStubInterface, args []string) pb.Response{
 	var key string
 	var err error
@@ -389,6 +355,59 @@ func (t *SimpleChaincode) modify (stub shim.ChaincodeStubInterface, args []strin
 	}
 
 	return shim.Success(nil);
+}
+
+func (t *SimpleChaincode) queryByRange (stub shim.ChaincodeStubInterface, args []string) pb.Response {
+	var startKey string
+	var endKey string
+	
+	fmt.Println("query by range start");
+	
+	if len(args) != 3 {
+		return shim.Error("Incorrect number of arguments, expecting 3") 
+	}
+	
+	startKey = args[1]
+	endKey = args[2]
+	
+	tradeList,err := stub.GetStateByRange(startKey, endKey) 
+	
+	if err != nil {
+		fmt.Println("Error getting state")
+		return shim.Error(err.Error())
+	}
+	
+	var buffer bytes.Buffer
+	buffer.WriteString("[")
+	
+	bArrayMemberAlreadyWritten := false
+	for tradeList.HasNext() {
+		queryResponse, err := tradeList.Next()
+		if err != nil {
+			fmt.Println(err.Error())
+			return shim.Error(err.Error())
+		}
+		// Add a comma before array members, suppress it for the first array member
+		if bArrayMemberAlreadyWritten == true {
+			buffer.WriteString(",")
+		}
+		buffer.WriteString("{\"Key\":")
+		buffer.WriteString("\"")
+		buffer.WriteString(queryResponse.Key)
+		buffer.WriteString("\"")
+
+		buffer.WriteString(", \"Record\":")
+		// Record is a JSON object, so we write as-is
+		buffer.WriteString(string(queryResponse.Value))
+		
+		buffer.WriteString("}")
+		bArrayMemberAlreadyWritten = true
+	}
+	buffer.WriteString("]")
+	
+	fmt.Printf("- queryByRange queryResult:\n%s\n", buffer.String())
+
+	return shim.Success(buffer.Bytes())
 }
 
 func (t *SimpleChaincode) getHistory (stub shim.ChaincodeStubInterface, args []string) pb.Response{
@@ -451,10 +470,9 @@ func (t *SimpleChaincode) getHistory (stub shim.ChaincodeStubInterface, args []s
 	}
 	buffer.WriteString("]")
 
-	fmt.Printf("- getHistoryForKey returning:\n%s\n", buffer.String())
-
 	return shim.Success(buffer.Bytes())
 }
+
 func main(){
 	err := shim.Start(new(SimpleChaincode))
 	if err != nil {
