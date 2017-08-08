@@ -239,8 +239,7 @@ public class HyperledgerAPI {
 		 * endorse the transaction proposal for calling invoke methods which may
 		 * modify the state of world.
 		 */
-		Collection<ProposalResponse> transactionPropResp=null;
-		transactionPropResp = channel.sendTransactionProposal(transactionProposalRequest,
+		Collection<ProposalResponse> transactionPropResp=channel.sendTransactionProposal(transactionProposalRequest,
 				channel.getPeers());
 		for (ProposalResponse response : transactionPropResp) {
 			if (response.getStatus() == ProposalResponse.Status.SUCCESS) {
