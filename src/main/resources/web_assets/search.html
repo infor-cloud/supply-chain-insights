@@ -34,18 +34,24 @@
 <button id="addTradingPartner" class="btn btn-primary pull-right" style="margin-right:2%">Add Trading Partner </button>
    <h1></h1>
    <br>
-   <button id="modify" class="btn btn-success pull-right" style="margin-right:2%">Modify </button>
    
  <p> &emsp; Name of Company to search </p>
  <div class="col-lg-6" id="search">
     <div class="input-group">
       <input type="text" class="form-control" id="compName" placeholder="Search for...">
       <span class="input-group-btn">
-        <button class="btn btn-default" type="button" id="submit">Search</button>
+        <button class="btn btn-primary" type="button" id="submit" style="margin-left: 15%; margin-bottom:15%">Search</button>
       </span>
+      <span class="input-group-btn">
+        <button class="btn btn-primary" type="button" id="modify" style="margin-left: 20%; margin-bottom:15%; margin-right: 20% ;display: none">Modify</button>
+      </span>
+      <span class="input-group-btn">
+        <button class="btn btn-primary" type="button" id="showUnverified" style="margin-left: 20%; margin-bottom:15%; margin-right: 20% ; display:none">Show Unverified</button>
+      </span>
+      
+      
     </div><!-- /input-group -->
-  </div><!-- /.col-lg-6 -->   
-  
+  </div><!-- /.col-lg-6 -->
    <script type="text/javascript">
    
    function checkCookies(){
@@ -60,8 +66,14 @@
 	   $('h1').empty();
 	   $("#submit").prop('disabled', true);
 	   $('#noName').hide();
-	   $('#modify').hide();
-	   if(Cookies.get('added') == "true"){
+	   if(Cookies.get('orgName')=='Dun&BradStreet'){
+		   $('#showUnverified').show();
+	   }
+	   else{
+		   $('#showUnverified').hide();
+	   }
+
+     if(Cookies.get('added') == "true"){
 		   $('#added').show();
 	   }
 	   else{
@@ -79,10 +91,18 @@
 	   
    })
    
+   function setCookiesAndNavigate(tradingPartner) {
+   		Cookies.set(tradingPartner.name,tradingPartner);		
+		location.href="./modifyPartner.html?tradingPartner="+tradingPartner.name;
+   }
+   
    $('#addTradingPartner').click(function(){
 	   location.href="./createPartner.html"
    })
    
+   $('#modify').click(function(){
+	   setCookiesAndNavigate(obj)
+   })
    
    $("#compName").keypress(function(e) {
 	   $('#noName').hide();
@@ -94,7 +114,7 @@
    window.onbeforeunload = function () {
 	   Cookies.set('added', "false", {domain: '', path: ''});
    };
-   $('#compName').on('blur', function () {
+ /*  $('#compName').on('blur', function () {
 	   $('#error').remove();
 		if(!$('#compName').val()){
 			$('#noName').show();
@@ -110,12 +130,15 @@
 	     	   .removeClass('has-error has-feedback')
 		}
 		
-	});
+	});*/
    
+   var obj;
    $("#submit").click(function() {
+	   $("#modify").hide();
 	   $("#goBack").prop('disabled', true);
 	   $("#create").prop('disabled', true);
 		$("#searchResults").remove()
+		$("#accordion").remove()
 		$("#error").remove();
 	   if(!$("#compName").val()) {
 		   $("#goBack").prop('disabled', false);
@@ -130,8 +153,7 @@
 			url: "http://localhost:8080/fabric/search",
 			dataType: "json",
 			success: function(data) {
-				alert(data.name)
-				//var obj = JSON.parse(data);
+				obj = JSON.parse(data);
 				$('body').append ("<div id='searchResults'></div>")
 				$('#searchResults').append ("<table class='table table-bordered col-xs-6' id=res>" +
 												"<tbody>" + 
@@ -148,9 +170,9 @@
 				});
 				
 				//$('#searchResults').append("</tbody></table>);
+				$("#modify").show();
 				$("#goBack").prop('disabled', false);
 				$("#create").prop('disabled', false);
-				$('#modify').show();
 			},
 			error: function(data){
 				$('#search').append("<p id='error'></p>")
@@ -158,7 +180,6 @@
 				$("#error").css('color','red')
 				$("#goBack").prop('disabled', false);
 				$("#create").prop('disabled', false);
-				$('#modify').hide();
 			},
 			data: {orgName: Cookies.get('orgName'),
 				userName: Cookies.get('userName'),
@@ -167,6 +188,69 @@
 			}
 		});
 	   }
+	});
+   
+   var unverifiedData;
+   
+	$("#showUnverified").click(function() {
+		$("#modify").hide();
+	    $("#goBack").prop('disabled', true);
+	    $("#create").prop('disabled', true);
+		$("#accordion").remove()
+		$("#searchResults").remove()
+		$("#error").remove();
+	   	if (!checkCookies()){
+			alert("User info not set up!")
+		   	location.href="./sessionProfile.html"
+	   	}
+	   	else {
+	 		$.ajax({
+			type: "GET",
+			url: "http://localhost:8080/fabric/getUnverified",
+			dataType: "text",
+			success: function(data) {
+				unverifiedData = JSON.parse(data);
+				$('body').append ("<div class='col-lg-10'><div class='panel-group' id='accordion' role='tablist' aria-multiselectable='true'></div></div>");
+				
+				for(var i=0;i<unverifiedData.length;i++){
+					var unverifiedTradingPartner=JSON.parse(unverifiedData[i]);			    
+					Cookies.set(unverifiedTradingPartner.name,unverifiedTradingPartner);
+				$('#accordion').append ("<div class='panel panel-default'><div class='panel-heading' role='tab' id='heading"+i+"'><a role='button' data-toggle='collapse' data-parent='#accordion' href='#collapse"+i+"' aria-expanded='false' aria-controls='collapseOne'><h4 class='panel-title'>"+
+						unverifiedTradingPartner.name +"</h4></a></div><div id='collapse"+i+"' class='panel-collapse collapse ' role='tabpanel' aria-labelledby='headingOne'><div class='panel-body'>"+
+			        "<div id='searchResults"+i+"'></div><table class='table table-bordered' id='res"+i+"'>" +
+					 "<tbody>" + 
+					 "<tr><td>Name</td><td><a href='./modifyPartner.html?tradingPartner="+unverifiedTradingPartner.name +"'>" + unverifiedTradingPartner.name + "</a></td></tr>" + 
+					 "<tr><td>Website URI</td><td>" + unverifiedTradingPartner.websiteURI + "</td></tr>" + 
+					"<tr><td>Street Name</td><td>" + unverifiedTradingPartner.streetName + "</td></tr>" + 
+					"<tr><td>City Name</td><td>" + unverifiedTradingPartner.cityName + "</td></tr>" + 
+					"<tr><td>Postal Zone</td><td>" + unverifiedTradingPartner.postalZone + "</td></tr>" + 
+					"<tr><td>Contact Name</td><td>" + unverifiedTradingPartner.contactName + "</td></tr>" + 
+					"<tr><td>Contact Email</td><td>" + unverifiedTradingPartner.contactEmail + "</td></tr>" + 
+					"<tr><td>Contact Telephone</td><td>" + unverifiedTradingPartner.contactTelephone + "</td></tr></div></div></div>");
+				$.each(unverifiedTradingPartner.idList,function(index, value){
+					$('#res'+i).append("<tr><td> Identifier: " + value.schemeName + "</td><td>" + value.id + "</td><tr>")
+				});
+				
+				}
+				//$('#searchResults').append("</tbody></table>);
+			//	$("#modify").show();
+				$("#goBack").prop('disabled', false);
+				$("#create").prop('disabled', false);
+			},
+			error: function(data){
+				$('body').prepend("<p id='error'></p>")
+				$("#error").append(data.responseText )
+				$("#error").css('color','red')
+				$("#goBack").prop('disabled', false);
+				$("#create").prop('disabled', false);
+			},
+			data: {orgName: Cookies.get('orgName'),
+				userName: Cookies.get('userName'),
+				channelName: Cookies.get('channelName'),
+				compName: $("#compName").val()
+			}
+		}); 
+	   	}
 	});
    </script>
    

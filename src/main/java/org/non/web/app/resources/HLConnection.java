@@ -78,7 +78,6 @@ public class HLConnection {
 
 		transactionChaincodeID = ChaincodeID.newBuilder().setName(CONNECTION_CHAIN_CODE_NAME)
 				.setVersion(CONNECTION_CHAIN_CODE_VERSION).setPath(CONNECTION_CHAIN_CODE_PATH).build();
-
 		try {
 			/* Construct Channel */
 			Organization thisOrg = config.getOrgDetailsByName(ORG_NAME_GTN);
@@ -146,7 +145,7 @@ public class HLConnection {
 		return hlconnection;
 	}
 
-	// public Block getBlock(){
+  // public Block getBlock(){
 	// return block;
 	// }
 	public String createConnection(String orgName, String userName, String channelName, Connection connect)
@@ -170,8 +169,8 @@ public class HLConnection {
 		}
 
 	}
-
-	public String createPartner(String orgName, String userName, String channelName, TradingPartner tradingPartner)
+	
+	public String createPartner(String orgName, String userName, String channelName, TradingPartner tradingPartner, String functionName)
 			throws Exception {
 		logger.info("Got Request to add a new Trading Partner");
 		/* Get the channel specified from the UI */
@@ -192,14 +191,19 @@ public class HLConnection {
 		}
 
 		else {
-			String args[] = { "add", tradingPartner.getName(), tradeString };
+			String args[] = { "add", tradingPartner.getName(), tradeString , functionName };
 
 			/*
 			 * Send transaction to HyperledgerAPI to properly format the
 			 * proposal request
 			 */
+			try{
 			HyperledgerAPI.invoke(args, config.getOrgDetailsByName(orgName).getUserByName(userName), client,
 					chainCodeID, ch);
+			}
+			catch(Exception e){
+				System.out.println(e.getMessage());
+			}
 			return ("SUCCESS");
 
 		}
@@ -218,9 +222,13 @@ public class HLConnection {
 
 		else {
 			logger.info("Chain found for name: %s" + channelName);
-			List<Peer> orgPeers=config.getOrgDetailsByName(orgName).getPeers();			
-			String result = HyperledgerAPI.query(new String[] { "query", compName }, config.getOrgDetailsByName(orgName).getUserByName(userName), client,
-					chainCodeID, ch, orgPeers);
+			String args[] = { "query", compName };
+
+			// org.non.config.Org to be updated with storing a list of peers
+			List<Peer> orgPeers = config.getOrgDetailsByName(orgName).getPeers();
+			String result = HyperledgerAPI.query(args, config.getOrgDetailsByName(orgName).getUserByName(userName),
+					client, chainCodeID, ch, orgPeers);
+			logger.info("Result: " + result);
 			if (result.isEmpty())
 				return "ERROR: No trading partner exists for: " + compName;
 
@@ -228,14 +236,14 @@ public class HLConnection {
 		}
 	}
 
-	public void queryVerified(String orgName, String userName, String channelName) throws Exception {
+	public String queryVerified(String orgName, String userName, String channelName) throws Exception {
 		String args[] = { "queryVerified", "Unverified" };
 		Channel ch = client.getChannel(channelName);
 		List<Peer> orgPeers = config.getOrgDetailsByName(orgName).getPeers();
 		System.out.println("OrgName: " + orgName + " UserName: " + userName);
 		String result = HyperledgerAPI.query(args, config.getOrgDetailsByName(orgName).getUserByName(userName), client, chainCodeID,
 				ch, orgPeers);
-		System.out.println(result);
+		return result;
 	}
 
 	public String queryConnection(String orgName, String userName, String channelName, String compName)

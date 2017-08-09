@@ -117,7 +117,8 @@ public class ChannelUtilTest_AddPeers {
 						String payload = null;
 						try {
 							Organization org=config.getOrgDetailsByName(ORG_NAME_DNB);
-							payload = HyperledgerAPI.query(new String[] { "query", sampleKey }, org.getUserByName(TESTUSER_1_NAME),
+							String args[] = { "query", sampleKey };
+							payload = HyperledgerAPI.query(args,org.getUserByName(TESTUSER_1_NAME),
 									client, chaincodeID, ch1,org.getPeers());
 						} catch (Exception e) {
 							e.printStackTrace();

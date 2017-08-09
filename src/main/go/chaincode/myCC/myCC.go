@@ -7,8 +7,6 @@ import(
 	"bytes"
 	"strconv"
 	"time"
-
-	
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	pb "github.com/hyperledger/fabric/protos/peer"
 
@@ -85,11 +83,9 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response{
 		return t.queryVerified(stub, args)
 	}
 	
-	if args[0] == "queryByRange" {
+  if args[0] == "queryByRange" {
 		return t.queryByRange(stub, args)
 	}
-	fmt.Println("Cant find method of" + args[0])
-	return shim.Error("unknown action, must be of add,modify,query or delete")
 	if args[0] == "getHistory" {
 		return t.getHistory (stub, args)	
 	}
@@ -154,16 +150,25 @@ func (t *SimpleChaincode) addMember (stub shim.ChaincodeStubInterface, args[] st
 }
 
 func (t *SimpleChaincode) add (stub shim.ChaincodeStubInterface, args[] string) pb.Response{
-	fmt.Println("Add is called");
-	if len(args) != 3 {
-		return shim.Error ("Incorrect number of arguments. Expecting 3")	
+	if len(args) != 4 {
+		return shim.Error ("Incorrect number of arguments. Expecting 4")	
 	}
-	
 	var key string
 	var err error
-	fmt.Println(args[2]);
-	//Initialize the Chaincode
 	key = args[1]
+	if args[3]=="create"{
+		state, err:= stub.GetState(key)
+		if state != nil {
+			jsonResp := "{\"Error\":\"Failed to get state for Already exist\"}"
+			return shim.Error(jsonResp)
+		}
+		if err != nil {
+			return shim.Error(err.Error())
+		}
+	}
+	
+	//Initialize the Chaincode
+	
 	buf, err := json.Marshal(args[2])
 	
 	if err != nil {
@@ -186,14 +191,16 @@ func (t *SimpleChaincode) add (stub shim.ChaincodeStubInterface, args[] string) 
 		fmt.Println ("Verified!")
 		data.Verified = true;
 		boolVal = "Verified"
+		index := "verified~name"
+		verifiedNameIndexKey, _ := stub.CreateCompositeKey(index, []string{"Unverified",data.Name})
+		stub.DelState(verifiedNameIndexKey)
 	} else {
 		fmt.Println("Not verified :(")
 		data.Verified = false;
 		boolVal = "Unverified"
 	}
 
-	buf, err =  json.Marshal(data)
-	//json.Unmarshal(buf, &trade)
+//	buf, err =  json.Marshal(data)
 	err = stub.PutState(key, buf)
 	if (err != nil){
 		return shim.Error(err.Error())
@@ -208,7 +215,6 @@ func (t *SimpleChaincode) add (stub shim.ChaincodeStubInterface, args[] string) 
 	value := []byte{0x00}
 	fmt.Println(verifiedNameIndexKey)
 	stub.PutState(verifiedNameIndexKey, value)
-	fmt.Println("Add finished");
 	return shim.Success(nil)
 }
 
@@ -227,6 +233,35 @@ func (t *SimpleChaincode) delete (stub shim.ChaincodeStubInterface, args[] strin
 	}
 	return shim.Success(nil)
 
+}
+
+func (t *SimpleChaincode) addConnection (stub shim.ChaincodeStubInterface, args []string) pb.Response{
+	if len(args) != 4 {
+		return shim.Error("Incorrect number of args; expecting the name of the two orgs and the connection") 
+	}
+	comp1 := args[1]
+	comp2 := args[2]
+	connection := args[3]
+	
+	
+	buf, err := json.Marshal(connection)
+	index := "comp1~comp2"
+
+	connectionIndexKey, err := stub.CreateCompositeKey(index, []string{comp1,comp2})
+	if err != nil {
+		fmt.Println("Problem making composite keys")
+		return shim.Error("Problem getting composite key");
+	}
+	
+	stub.PutState(connectionIndexKey, buf);
+	
+	fmt.Println("##COMP1##");
+	fmt.Println(comp1);
+	fmt.Println("##COMP2##");
+	fmt.Println(comp2);
+	fmt.Println("##CONNECTION##");
+	fmt.Println(connection);
+	return shim.Success(nil)
 }
 
 func (t *SimpleChaincode) query (stub shim.ChaincodeStubInterface, args []string) pb.Response{
@@ -255,50 +290,53 @@ func (t *SimpleChaincode) query (stub shim.ChaincodeStubInterface, args []string
 }
 
 func (t *SimpleChaincode) queryVerified(stub shim.ChaincodeStubInterface, args[]string) pb.Response{
-	fmt.Println("queryVerified");
-	//verified := args[1]
-	verified := "Unverified"
-	
-	verifiedResultsIterator, err := stub.GetStateByPartialCompositeKey("verified~name", []string{verified})
-	
-	if err != nil {
-		fmt.Println("Got Error getting the iterator");
-		return shim.Error(err.Error())
-	}
-	defer verifiedResultsIterator.Close()
-	var buffer bytes.Buffer
-	var trade []byte
+    fmt.Println("queryVerified");
+    //Uncomment after updating HLConnection
+    if t.isVerified(stub) == false {
+       return shim.Error("You're not allowed to be here")
+    } 
+    verified := args[1]
+    //verified := "Unverified"
+    
+    verifiedResultsIterator, err := stub.GetStateByPartialCompositeKey("verified~name", []string{verified})
+    
+    if err != nil {
+        fmt.Println("Got Error getting the iterator");
+        return shim.Error(err.Error())
+    }
+    defer verifiedResultsIterator.Close()
+    var buffer bytes.Buffer
+    var trade []byte
     buffer.WriteString("[")
     bArrayMemberAlreadyWritten := false
-	var i int
-	for i = 0; verifiedResultsIterator.HasNext(); i++ {
-		responseRange, err := verifiedResultsIterator.Next()
-		if err != nil {
-			return shim.Error(err.Error())
-		}
+    var i int
+    for i = 0; verifiedResultsIterator.HasNext(); i++ {
+        responseRange, err := verifiedResultsIterator.Next()
+        if err != nil {
+            return shim.Error(err.Error())
+        }
 
-		objectType, compositeKeyParts, err := stub.SplitCompositeKey(responseRange.Key)
-		if err != nil {
-			return shim.Error(err.Error())
-		}
-		returnedVerification := compositeKeyParts[0]
-		returnedPartnerName := compositeKeyParts[1]
-		fmt.Printf("- found a Partner from index:%s verification:%s name:%s\n", objectType, returnedVerification, returnedPartnerName)
-		
-		trade,err = stub.GetState(returnedPartnerName)
-		if bArrayMemberAlreadyWritten == true {
-			buffer.WriteString(",")
-		}
-		// Record is a JSON object, so we write as-is
-		buffer.Write(trade)
-		buffer.WriteString("}")
-		bArrayMemberAlreadyWritten = true
-	}
-	buffer.WriteString("]")
+        objectType, compositeKeyParts, err := stub.SplitCompositeKey(responseRange.Key)
+        if err != nil {
+            return shim.Error(err.Error())
+        }
+        returnedVerification := compositeKeyParts[0]
+        returnedPartnerName := compositeKeyParts[1]
+        fmt.Printf("- found a Partner from index:%s verification:%s name:%s\n", objectType, returnedVerification, returnedPartnerName)
+        
+        trade,err = stub.GetState(returnedPartnerName)
+        if bArrayMemberAlreadyWritten == true {
+            buffer.WriteString(",")
+        }
+        // Record is a JSON object, so we write as-is
+        buffer.Write(trade)
+        bArrayMemberAlreadyWritten = true
+    }
+    buffer.WriteString("]")
 
-	fmt.Println("Ending queryVerified");
-	return shim.Success(buffer.Bytes())
-	
+    fmt.Println("Ending queryVerified");
+    return shim.Success(buffer.Bytes())
+    
 }
 
 func (t *SimpleChaincode) modify (stub shim.ChaincodeStubInterface, args []string) pb.Response{
@@ -441,12 +479,3 @@ func main(){
 		fmt.Printf("Error starting Simple chaincode: %s", err)
 	}
 }
-
-
-
-
-
-
-
-
-
