@@ -130,11 +130,11 @@
 			url: "http://localhost:8080/fabric/search",
 			dataType: "json",
 			success: function(data) {
-				alert(data.name)
+				//alert(data.name)
 				//var obj = JSON.parse(data);
 				$('body').append ("<div id='searchResults'></div>")
 				$('#searchResults').append ("<table class='table table-bordered col-xs-6' id=res>" +
-												"<tbody>" + 
+												"<tbody>" +  
 													"<tr><td>Name</td><td>" + data.name + "</td></tr>" + 
 													"<tr><td>Website URI</td><td>" + data.websiteURI + "</td></tr>" + 
 													"<tr><td>Street Name</td><td>" + data.streetName + "</td></tr>" + 

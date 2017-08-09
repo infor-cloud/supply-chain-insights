@@ -4,6 +4,7 @@ package main
 import(
 	"encoding/json"
 	"fmt"
+	"bytes"
 	//"strconv"
 	
 	"github.com/hyperledger/fabric/core/chaincode/shim"
@@ -99,12 +100,14 @@ func (t *SimpleChaincode) add (stub shim.ChaincodeStubInterface, args[] string) 
 	index := "comp1~comp2"
 
 	connectionIndexKey, err := stub.CreateCompositeKey(index, []string{comp1,comp2})
+	connectionIndexKey2, err := stub.CreateCompositeKey(index, []string{comp2,comp1})
 	if err != nil {
 		fmt.Println("Problem making composite keys")
 		return shim.Error("Problem getting composite key");
 	}
 	
 	stub.PutState(connectionIndexKey, buf);
+	stub.PutState(connectionIndexKey2, buf);	
 	
 	fmt.Println("##COMP1##");
 	fmt.Println(comp1);
@@ -145,22 +148,37 @@ func (t *SimpleChaincode) query (stub shim.ChaincodeStubInterface, args []string
 		return shim.Error("Error getting keys from the ledger")
 	}
 	defer companyIterator.Close()
-	var connection string
-	var result []byte;
-	var i int
-	for i = 0; companyIterator.HasNext(); i++ {
-		responseRange, err := companyIterator.Next()
-		if err != nil {	
-			fmt.Println("Error getting response from iterator")
-			return shim.Error("Problem getting the response from iterator")
-		}	
-		fmt.Println(responseRange.Value);
-		result = responseRange.Value
-		json.Unmarshal(responseRange.Value, &connection)
-		fmt.Println("Connection: " + connection);
+	var buffer bytes.Buffer
+	buffer.WriteString("[")
+	
+	bArrayMemberAlreadyWritten := false
+	for companyIterator.HasNext() {
+		queryResponse, err := companyIterator.Next()
+		if err != nil {
+			fmt.Println(err.Error())
+			return shim.Error(err.Error())
+		}
+		// Add a comma before array members, suppress it for the first array member
+		if bArrayMemberAlreadyWritten == true {
+			buffer.WriteString(",")
+		}
+		buffer.WriteString("{\"Key\":")
+		buffer.WriteString("\"")
+		buffer.WriteString(queryResponse.Key)
+		buffer.WriteString("\"")
+
+		buffer.WriteString(", \"Record\":")
+		// Record is a JSON object, so we write as-is
+		buffer.WriteString(string(queryResponse.Value))
+		
+		buffer.WriteString("}")
+		bArrayMemberAlreadyWritten = true
 	}
-	fmt.Println("Finishing query connections");	
-	return shim.Success(result)
+	buffer.WriteString("]")
+	
+	fmt.Printf("- queryByRange queryResult:\n%s\n", buffer.String())
+
+	return shim.Success(buffer.Bytes())
 }
 
 func (t *SimpleChaincode) modify (stub shim.ChaincodeStubInterface, args []string) pb.Response{

@@ -40,6 +40,7 @@ public class UIResources {
 				+ "\n compName: " + compName);
 		
 		String result = hlconnection.getTradingPartner(orgName, userName, channelName, compName);
+		//hlconnection.queryVerified(orgName, userName, channelName);
 		System.out.println("RESULT:" + result);
 		return result;
 	}

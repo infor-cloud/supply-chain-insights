@@ -95,7 +95,7 @@ public class HLConnection {
 			/* Install Chaincode on peers */
 			for (Organization org : channelorgs) {
 				HyperledgerAPI.installChaincode(client, org.getPeerAdmin(), org.getPeers(), chaincodeID);
-				HyperledgerAPI.installChaincode(client, org.getPeerAdmin(), org.getPeers(), transactionChaincodeID);
+				//HyperledgerAPI.installChaincode(client, org.getPeerAdmin(), org.getPeers(), transactionChaincodeID);
 			}
 
 			/*Register a BlockListener on channel*/
@@ -103,7 +103,8 @@ public class HLConnection {
 			ch1.registerBlockListener(listener);
 			
 			/* Initiate Chaincode on peers on the channel */
-			HyperledgerAPI.initiateChaincode(client, transactionChaincodeID, ch1, "scripts/chaincodeendorsementpolicy.yaml");
+			//HyperledgerAPI.initiateChaincode(client, transactionChaincodeID, ch1, "scripts/chaincodeendorsementpolicy.yaml");
+			
 			CompletableFuture<TransactionEvent> initFuture = HyperledgerAPI.initiateChaincode(client, chaincodeID, ch1,
 					"scripts/chaincodeendorsementpolicy.yaml");
 			int TRANSACTIONWAITTIME = 140000;
@@ -130,7 +131,6 @@ public class HLConnection {
 				return null;
 
 			}).get(TRANSACTIONWAITTIME, TimeUnit.SECONDS);
-
 			logger.info("That's all!");
 
 		} catch (Exception e) {
@@ -235,7 +235,7 @@ public class HLConnection {
 		System.out.println("OrgName: " + orgName + " UserName: " + userName);
 		String result = HyperledgerAPI.query(args, config.getOrgDetailsByName(orgName).getUserByName(userName), client, chainCodeID,
 				ch, orgPeers);
-		System.out.println(result);
+		System.out.println("Query Verified:" + result);
 	}
 
 	public String queryConnection(String orgName, String userName, String channelName, String compName)
