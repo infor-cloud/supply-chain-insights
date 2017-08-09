@@ -157,14 +157,14 @@
 				$('body').append ("<div id='searchResults'></div>")
 				$('#searchResults').append ("<table class='table table-bordered col-xs-6' id=res>" +
 												"<tbody>" + 
-													"<tr><td>Name</td><td>" + data.name + "</td></tr>" + 
-													"<tr><td>Website URI</td><td>" + data.websiteURI + "</td></tr>" + 
-													"<tr><td>Street Name</td><td>" + data.streetName + "</td></tr>" + 
-													"<tr><td>City Name</td><td>" + data.cityName + "</td></tr>" + 
-													"<tr><td>Postal Zone</td><td>" + data.postalZone + "</td></tr>" + 
-													"<tr><td>Contact Name</td><td>" + data.contactName + "</td></tr>" + 
-													"<tr><td>Contact Email</td><td>" + data.contactEmail + "</td></tr>" + 
-													"<tr><td>Contact Telephone</td><td>" + data.contactTelephone + "</td></tr>");
+													"<tr><td>Name</td><td>" + obj.name + "</td></tr>" + 
+													"<tr><td>Website URI</td><td>" + obj.websiteURI + "</td></tr>" + 
+													"<tr><td>Street Name</td><td>" + obj.streetName + "</td></tr>" + 
+													"<tr><td>City Name</td><td>" + obj.cityName + "</td></tr>" + 
+													"<tr><td>Postal Zone</td><td>" + obj.postalZone + "</td></tr>" + 
+													"<tr><td>Contact Name</td><td>" + obj.contactName + "</td></tr>" + 
+													"<tr><td>Contact Email</td><td>" + obj.contactEmail + "</td></tr>" + 
+													"<tr><td>Contact Telephone</td><td>" + obj.contactTelephone + "</td></tr>");
 				$.each(data.idList,function(index, value){
 					$('#res').append("<tr><td> Identifier:" + value.schemeName + "</td><td>" + value.id + "</td><tr>")
 				});
