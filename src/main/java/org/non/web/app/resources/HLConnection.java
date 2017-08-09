@@ -35,7 +35,7 @@ public class HLConnection {
 	private String CHAIN_CODE_NAME = "myCC_go";
 	private String CHAIN_CODE_PATH = "main/go/chaincode/myCC";
 	private String CHAIN_CODE_VERSION = "1";
-	private ChaincodeID chainCodeID;
+	private ChaincodeID chaincodeID;
 
 	private String CONNECTION_CHAIN_CODE_NAME = "connectionCC_go";
 	private String CONNECTION_CHAIN_CODE_PATH = "main/go/chaincode/connectionChaincode";
@@ -73,11 +73,7 @@ public class HLConnection {
 		ChannelDetails channelDetails = config.getChannelDetails("ch1");
 		List<Organization> channelorgs = config.getOrgsOnChannel("ch1");
 		String channelTxFilePath = channelDetails.getTransactionFilePath();
-		chainCodeID = ChaincodeID.newBuilder().setName(CHAIN_CODE_NAME).setVersion(CHAIN_CODE_VERSION)
-				.setPath(CHAIN_CODE_PATH).build();
 
-		transactionChaincodeID = ChaincodeID.newBuilder().setName(CONNECTION_CHAIN_CODE_NAME)
-				.setVersion(CONNECTION_CHAIN_CODE_VERSION).setPath(CONNECTION_CHAIN_CODE_PATH).build();
 		try {
 			/* Construct Channel */
 			Organization thisOrg = config.getOrgDetailsByName(ORG_NAME_GTN);
@@ -88,8 +84,11 @@ public class HLConnection {
 			// block=ch1.queryBlockByNumber(0).getBlock();
 
 			/* ChainCode Configuration */
-			ChaincodeID chaincodeID = ChaincodeID.newBuilder().setName(CHAIN_CODE_NAME).setVersion(CHAIN_CODE_VERSION)
+			chaincodeID = ChaincodeID.newBuilder().setName(CHAIN_CODE_NAME).setVersion(CHAIN_CODE_VERSION)
 					.setPath(CHAIN_CODE_PATH).build();
+
+			transactionChaincodeID = ChaincodeID.newBuilder().setName(CONNECTION_CHAIN_CODE_NAME)
+					.setVersion(CONNECTION_CHAIN_CODE_VERSION).setPath(CONNECTION_CHAIN_CODE_PATH).build();
 
 			/* Install Chaincode on peers */
 			for (Organization org : channelorgs) {
@@ -199,11 +198,12 @@ public class HLConnection {
 			 */
 			try{
 			HyperledgerAPI.invoke(args, config.getOrgDetailsByName(orgName).getUserByName(userName), client,
-					chainCodeID, ch);
+					chaincodeID, ch);
 			}
 			catch(Exception e){
 				System.out.println(e.getMessage());
 			}
+
 			return ("SUCCESS");
 
 		}
@@ -222,13 +222,15 @@ public class HLConnection {
 
 		else {
 			logger.info("Chain found for name: %s" + channelName);
+			
 			String args[] = { "query", compName };
 
 			// org.non.config.Org to be updated with storing a list of peers
 			List<Peer> orgPeers = config.getOrgDetailsByName(orgName).getPeers();
 			String result = HyperledgerAPI.query(args, config.getOrgDetailsByName(orgName).getUserByName(userName),
-					client, chainCodeID, ch, orgPeers);
+					client, chaincodeID, ch, orgPeers);
 			logger.info("Result: " + result);
+
 			if (result.isEmpty())
 				return "ERROR: No trading partner exists for: " + compName;
 
@@ -241,7 +243,7 @@ public class HLConnection {
 		Channel ch = client.getChannel(channelName);
 		List<Peer> orgPeers = config.getOrgDetailsByName(orgName).getPeers();
 		System.out.println("OrgName: " + orgName + " UserName: " + userName);
-		String result = HyperledgerAPI.query(args, config.getOrgDetailsByName(orgName).getUserByName(userName), client, chainCodeID,
+		String result = HyperledgerAPI.query(args, config.getOrgDetailsByName(orgName).getUserByName(userName), client, chaincodeID,
 				ch, orgPeers);
 		return result;
 	}
@@ -267,13 +269,35 @@ public class HLConnection {
 		Channel ch = client.getChannel(channelName);
 		NetworkUser user = config.getOrgDetailsByName(orgName).getUserByName(userName);
 		List<Peer> orgPeers = config.getOrgDetailsByName(orgName).getPeers();
-		String result = HyperledgerAPI.query(args, user, client,chainCodeID, ch, orgPeers);
+		String result = HyperledgerAPI.query(args, user, client,chaincodeID, ch, orgPeers);
 		
 		System.out.println("RANGE QUERY RESULT: " + result);
 		if (result.isEmpty()){
 			return "No connection found";
 		}
 		return result;
+	}
+	
+	public String queryHistory(String orgName, String userName, String channelName, String compName)
+			throws Exception {
+		logger.info("Got Request to Query the History of a Trading Partner");
+
+		Channel ch = client.getChannel(channelName.toLowerCase());
+		if (ch == null) {
+			logger.info("No channel exist for channel name: %s" + channelName);
+			return ("ERROR: No Channel Exists for: " + channelName);
+		}
+
+		else {
+			logger.info("Chain found for name: %s" + channelName);
+			List<Peer> orgPeers = config.getOrgDetailsByName(orgName).getPeers();			
+			String result = HyperledgerAPI.query(new String[] { "getHistory", compName }, config.getOrgDetailsByName(orgName).getUserByName(userName), client,
+					chaincodeID, ch, orgPeers);
+			if (result.isEmpty())
+				return "ERROR: No trading partner exists for: " + compName;
+
+			return result;
+		}
 	}
 
 	public void setUpOrgs() throws Exception {
@@ -284,17 +308,17 @@ public class HLConnection {
 
 		for (NetworkUser user : gtnUsers) {
 			String args[] = { "addMember", "ntp" };
-			HyperledgerAPI.invoke(args, user, client, chainCodeID, ch1);
+			HyperledgerAPI.invoke(args, user, client, chaincodeID, ch1);
 			System.out.println(user.toString());
 		}
 		for (NetworkUser user : elemicaUsers) {
 			String args[] = { "addMember", "ntp" };
-			HyperledgerAPI.invoke(args, user, client, chainCodeID, ch1);
+			HyperledgerAPI.invoke(args, user, client, chaincodeID, ch1);
 			System.out.println(user.toString());
 		}
 		for (NetworkUser user : dnbUsers) {
 			String args[] = { "addMember", "oracle" };
-			HyperledgerAPI.invoke(args, user, client, chainCodeID, ch1);
+			HyperledgerAPI.invoke(args, user, client, chaincodeID, ch1);
 			System.out.println(user.toString());
 		}
 	}
