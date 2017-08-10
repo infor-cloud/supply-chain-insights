@@ -239,7 +239,7 @@ public class HyperledgerAPI {
 		 * endorse the transaction proposal for calling invoke methods which may
 		 * modify the state of world.
 		 */
-		Collection<ProposalResponse> transactionPropResp = channel.sendTransactionProposal(transactionProposalRequest,
+		Collection<ProposalResponse> transactionPropResp=channel.sendTransactionProposal(transactionProposalRequest,
 				channel.getPeers());
 		for (ProposalResponse response : transactionPropResp) {
 			if (response.getStatus() == ProposalResponse.Status.SUCCESS) {
@@ -254,7 +254,7 @@ public class HyperledgerAPI {
 				+ successful.size() + ". Failed: " + failed.size());
 		if (failed.size() > 0) {
 			ProposalResponse firstTransactionProposalResponse = failed.iterator().next();
-			new RuntimeException("Not enough endorsers for invoke(add key,value):" + failed.size() + " endorser error: "
+			throw new RuntimeException("Not enough endorsers for invoke(add key,value):" + failed.size() + " endorser error: "
 					+ firstTransactionProposalResponse.getMessage() + ". Was verified: "
 					+ firstTransactionProposalResponse.isVerified());
 		}
@@ -316,6 +316,6 @@ public class HyperledgerAPI {
 			return payloadSet.iterator().next();
 		}
 	}
-
+	
 }
 

@@ -17,7 +17,7 @@
   
   
 <meta charset="ISO-8859-1">
-<title> Creating a Trading Partner </title>
+<title> Modify Trading Partner </title>
 </head>
 <style>
 .take-all-space-you-can{
@@ -40,17 +40,17 @@
 <ul class="nav nav-tabs">
   <li role="presentation"class="take-all-space-you-can"><a href="./sessionProfile.html">My Profile</a></li>
   <li role="presentation"class="active take-all-space-you-can"><a href="./search.html">Trading Partners</a></li>
-  <li role="presentation"class="take-all-space-you-can"><a href="./searchConnection.html">Connections</a></li>
+  <li role="presentation"class="take-all-space-you-can"><a href="./createConnect.html">Connections</a></li>
 </ul>
 
   <button id="goBack" class="btn btn-link">&lt;&lt;Go Back</button>
 
 	<p> </p>
 	<form id="f">
-<h2 style="margin-left:1%"> Creating a Trading Partner</h2>
+<h2 style="margin-left:1%"> Modify Trading Partner</h2>
   <div class="col-xs-4 " id="nameBlock">
     <label for="NameLabel">&emsp;Partner Name</label>
-    <input type="text" class="form-control " id="name" placeholder="Big Corporation">
+    <input type="text" class="form-control " id="name" disabled="disabled">
    </div>
    
    
@@ -122,40 +122,55 @@
 					<th></th>
 				</tr>
 			</thead>
-			<tbody>
-				<tr>
-					<td class="schemeName">
-						<div class="form-group ">
-					 	   <input type="text" class="form-control" id="scheme" style="margin-top:5%;margin-bottom:5%" placeholder="Scheme Name" >
-   						 </div>
-					</td>
-					<td class="customerID">
-						<div class="form-group ">
-					 	   <input type="text" class="form-control" id="id" style="margin-top:5%;margin-bottom:5%" placeholder="111-222-333" >
-   						 </div>
-   					 </td>
-   					 <td>
-   					 	<button type="button" class="btn btn-danger btn-circle delete" id="remove"><i class="glyphicon glyphicon-remove"></i></button>
-   					 </td>
-   				</tr>
-   				<tr>
-   					<td>
-   						<div>
-   							<button type="button" class="btn btn-default add" id="AddIDS">New Identifier</button>
-   						</div>
-   					</td>
-   				</tr>
-			</tbody>
+			
 		</table>
 	</div>
   
   <br>
   <br>
   
-  <button id="create" class="btn btn-primary"style="margin-left:2%; margin-bottom:3%">Create </button>
+  <button id="create" class="btn btn-primary"style="margin-left:2%; margin-bottom:3%">Update </button>
 
 
    <script type="text/javascript">
+   var getUrlParameter = function getUrlParameter(sParam) {
+	    var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+	        sURLVariables = sPageURL.split('&'),
+	        sParameterName,
+	        i;
+
+	    for (i = 0; i < sURLVariables.length; i++) {
+	        sParameterName = sURLVariables[i].split('=');
+
+	        if (sParameterName[0] === sParam) {
+	            return sParameterName[1] === undefined ? true : sParameterName[1];
+	        }
+	    }
+	};
+	var partnerName=getUrlParameter('tradingPartner');
+   var obj=Cookies.get(partnerName);
+	tradingPartner=JSON.parse(obj);  
+	Cookies.remove(partnerName);
+	setDefaultData();
+	
+	
+	function setDefaultData(){	
+		$('#name').val(tradingPartner.name);
+		$('#websiteURI').val(tradingPartner.websiteURI);
+		$('#streetName').val(tradingPartner.streetName);
+		$('#cityName').val(tradingPartner.cityName);
+		$('#postalZone').val(tradingPartner.postalZone); 
+		$('#contactName').val(tradingPartner.contactName);
+		$('#contactEmail').val(tradingPartner.contactEmail);
+		$('#contactTelephone').val(tradingPartner.contactTelephone);
+		$.each(tradingPartner.idList,function(index, value){
+			$('#idTable').append('<tr> <td class="schemeName"> <div class="form-group "> <input type="text" class="form-control" id="scheme" style="margin-top:5%;margin-bottom:5%" placeholder="Scheme Name" value="'+value.schemeName+'" > </div> </td> <td class="customerID"> <div class="form-group "> <input type="text" class="form-control" id="id" style="margin-top:5%;margin-bottom:5%" placeholder="111-222-333" value="'+value.id+'" > </div> </td> <td> <button type="button" class="btn btn-danger btn-circle delete" id="remove"><i class="glyphicon glyphicon-remove"></i></button> </td> </tr> ');
+			
+		});
+		$('#idTable').append('<tr> <td> <div> <button type="button" class="btn btn-default add" id="AddIDS">New Identifier</button> </div> </td> </tr>')
+		
+	}
+	
    function checkCookies(){
 	   if( Cookies.get('orgName') && Cookies.get('userName') && Cookies.get('channelName'))
 	   		return true
@@ -261,7 +276,7 @@
 					userName: 			Cookies.get('userName'),
 					orgName: 			Cookies.get('orgName'),
 					channelName: 		Cookies.get('channelName'),
-					func:				'create'
+					func :				"modify"
 					}
 				})
 		   	}
