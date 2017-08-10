@@ -37,17 +37,16 @@
    
  <p> &emsp; Name of Company to search </p>
  <div class="col-lg-6" id="search">
-    <div class="input-group">
+   <div class="input-group">
       <input type="text" class="form-control" id="compName" placeholder="Search for...">
-      <span class="input-group-btn">
-        <button class="btn btn-primary" type="button" id="submit" style="margin-left: 15%; margin-bottom:15%">Search</button>
-      </span>
-      <span class="input-group-btn">
-        <button class="btn btn-primary" type="button" id="modify" style="margin-left: 20%; margin-bottom:15%; margin-right: 20% ;display: none">Modify</button>
-      </span>
-      <span class="input-group-btn">
-        <button class="btn btn-primary" type="button" id="showUnverified" style="margin-left: 20%; margin-bottom:15%; margin-right: 20% ; display:none">Show Unverified</button>
-      </span>
+      
+      <div class="input-group-btn" style="
+">
+        <button class="btn btn-primary" type="button" id="submit" style="/* margin-left: 15%; *//* margin-bottom:15%; */">Search</button><button class="btn btn-primary" type="button" id="modify" style="/* margin-left: 15%; *//* margin-bottom: 15%; *//* display: none; */">Modify</button>
+      </div>
+      
+      <div class="input-group-btn" style="/* border: 7px solid red; */padding-left: 14px;">
+        <button class="btn btn-primary" type="button" id="showUnverified" style="/* margin-left: 15%; *//* margin-bottom: 15%; */border-top-left-radius: 4px;border-bottom-left-radius: 4px;">Show Unverified</button><button class="btn btn-primary" type="button" id="showHistory" style="/* margin-left: 15%; *//* margin-bottom:15%; */">Show History</button></div>
       
       
     </div><!-- /input-group -->
@@ -66,6 +65,7 @@
 	   $('h1').empty();
 	   $("#submit").prop('disabled', true);
 	   $('#noName').hide();
+	   $('#modify').hide();
 	   if(Cookies.get('orgName')=='Dun&BradStreet'){
 		   $('#showUnverified').show();
 	   }
@@ -139,6 +139,7 @@
 	   $("#create").prop('disabled', true);
 		$("#searchResults").remove()
 		$("#accordion").remove()
+		$("#accordion2").remove()
 		$("#error").remove();
 	   if(!$("#compName").val()) {
 		   $("#goBack").prop('disabled', false);
@@ -157,14 +158,14 @@
 				$('body').append ("<div id='searchResults'></div>")
 				$('#searchResults').append ("<table class='table table-bordered col-xs-6' id=res>" +
 												"<tbody>" + 
-													"<tr><td>Name</td><td>" + data.name + "</td></tr>" + 
-													"<tr><td>Website URI</td><td>" + data.websiteURI + "</td></tr>" + 
-													"<tr><td>Street Name</td><td>" + data.streetName + "</td></tr>" + 
-													"<tr><td>City Name</td><td>" + data.cityName + "</td></tr>" + 
-													"<tr><td>Postal Zone</td><td>" + data.postalZone + "</td></tr>" + 
-													"<tr><td>Contact Name</td><td>" + data.contactName + "</td></tr>" + 
-													"<tr><td>Contact Email</td><td>" + data.contactEmail + "</td></tr>" + 
-													"<tr><td>Contact Telephone</td><td>" + data.contactTelephone + "</td></tr>");
+													"<tr><td>Name</td><td>" + obj.name + "</td></tr>" + 
+													"<tr><td>Website URI</td><td>" + obj.websiteURI + "</td></tr>" + 
+													"<tr><td>Street Name</td><td>" + obj.streetName + "</td></tr>" + 
+													"<tr><td>City Name</td><td>" + obj.cityName + "</td></tr>" + 
+													"<tr><td>Postal Zone</td><td>" + obj.postalZone + "</td></tr>" + 
+													"<tr><td>Contact Name</td><td>" + obj.contactName + "</td></tr>" + 
+													"<tr><td>Contact Email</td><td>" + obj.contactEmail + "</td></tr>" + 
+													"<tr><td>Contact Telephone</td><td>" + obj.contactTelephone + "</td></tr>");
 				$.each(data.idList,function(index, value){
 					$('#res').append("<tr><td> Identifier:" + value.schemeName + "</td><td>" + value.id + "</td><tr>")
 				});
@@ -197,6 +198,7 @@
 	    $("#goBack").prop('disabled', true);
 	    $("#create").prop('disabled', true);
 		$("#accordion").remove()
+		$("#accordion2").remove()
 		$("#searchResults").remove()
 		$("#error").remove();
 	   	if (!checkCookies()){
@@ -228,6 +230,74 @@
 					"<tr><td>Contact Email</td><td>" + unverifiedTradingPartner.contactEmail + "</td></tr>" + 
 					"<tr><td>Contact Telephone</td><td>" + unverifiedTradingPartner.contactTelephone + "</td></tr></div></div></div>");
 				$.each(unverifiedTradingPartner.idList,function(index, value){
+					$('#res'+i).append("<tr><td> Identifier: " + value.schemeName + "</td><td>" + value.id + "</td><tr>")
+				});
+				
+				}
+				//$('#searchResults').append("</tbody></table>);
+			//	$("#modify").show();
+				$("#goBack").prop('disabled', false);
+				$("#create").prop('disabled', false);
+			},
+			error: function(data){
+				$('body').prepend("<p id='error'></p>")
+				$("#error").append(data.responseText )
+				$("#error").css('color','red')
+				$("#goBack").prop('disabled', false);
+				$("#create").prop('disabled', false);
+			},
+			data: {orgName: Cookies.get('orgName'),
+				userName: Cookies.get('userName'),
+				channelName: Cookies.get('channelName'),
+				compName: $("#compName").val()
+			}
+		}); 
+	   	}
+	});
+	
+	
+	var historyData;
+	   
+	$("#showHistory").click(function() {
+		$("#modify").hide();
+	    $("#goBack").prop('disabled', true);
+	    $("#create").prop('disabled', true);
+		$("#accordion2").remove()
+		$("#accordion").remove()
+		$("#searchResults").remove()
+		$("#error").remove();
+	   	if (!checkCookies()){
+			alert("User info not set up!")
+		   	location.href="./sessionProfile.html"
+	   	}
+	   	else {
+	 		$.ajax({
+			type: "GET",
+			url: "http://localhost:8080/fabric/queryHistory",
+			dataType: "text",
+			success: function(data) {
+				historyData = JSON.parse(data);
+				$('body').append ("<div class='col-lg-10'><div class='panel-group' id='accordion2' role='tablist' aria-multiselectable='true'></div></div>");
+				
+				for(var i=historyData.length - 1 ; i >= 0; i--){
+					var tradingPartnerHistory=JSON.parse(historyData[i].Value);			    
+					Cookies.set(tradingPartnerHistory.name,tradingPartnerHistory);
+				$('#accordion2').append ("<div class='panel panel-default'><div class='panel-heading' role='tab' id='heading"+i+"'><a role='button' data-toggle='collapse' data-parent='#accordion2' href='#collapse"+i+"' aria-expanded='false' aria-controls='collapseOne'><h4 class='panel-title'>"+
+						historyData[i].Timestamp +"</h4></a></div><div id='collapse"+i+"' class='panel-collapse collapse ' role='tabpanel' aria-labelledby='headingOne'><div class='panel-body'>"+
+			        "<div id='searchResults"+i+"'></div><table class='table table-bordered' id='res"+i+"'>" +
+					 "<tbody>" +
+					 "<tr><td>TxId </td><td>" + historyData[i].TxId + "</td></tr>" + 
+					 "<tr><td>TimeStamp</td><td>" + historyData[i].Timestamp + "</td></tr>" + 
+					 "<tr><td>Is deleted</td><td>" + historyData[i].IsDelete + "</td></tr>" + 
+					 "<tr><td>Name</td><td>" + tradingPartnerHistory.name + "</td></tr>" + 
+					 "<tr><td>Website URI</td><td>" + tradingPartnerHistory.websiteURI + "</td></tr>" + 
+					"<tr><td>Street Name</td><td>" + tradingPartnerHistory.streetName + "</td></tr>" + 
+					"<tr><td>City Name</td><td>" + tradingPartnerHistory.cityName + "</td></tr>" + 
+					"<tr><td>Postal Zone</td><td>" + tradingPartnerHistory.postalZone + "</td></tr>" + 
+					"<tr><td>Contact Name</td><td>" + tradingPartnerHistory.contactName + "</td></tr>" + 
+					"<tr><td>Contact Email</td><td>" + tradingPartnerHistory.contactEmail + "</td></tr>" + 
+					"<tr><td>Contact Telephone</td><td>" + tradingPartnerHistory.contactTelephone + "</td></tr></div></div></div>");
+				$.each(tradingPartnerHistory.idList,function(index, value){
 					$('#res'+i).append("<tr><td> Identifier: " + value.schemeName + "</td><td>" + value.id + "</td><tr>")
 				});
 				

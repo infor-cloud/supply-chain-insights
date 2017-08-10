@@ -290,7 +290,10 @@ public class HLConnection {
 
 		else {
 			logger.info("Chain found for name: %s" + channelName);
-			List<Peer> orgPeers = config.getOrgDetailsByName(orgName).getPeers();			
+			List<Peer> orgPeers = config.getOrgDetailsByName(orgName).getPeers();
+			if (compName.isEmpty()|| compName.equals(""))
+				return "ERROR: No trading partner exists for: " + compName;
+
 			String result = HyperledgerAPI.query(new String[] { "getHistory", compName }, config.getOrgDetailsByName(orgName).getUserByName(userName), client,
 					chaincodeID, ch, orgPeers);
 			if (result.isEmpty())
