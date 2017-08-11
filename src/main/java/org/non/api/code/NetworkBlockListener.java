@@ -24,7 +24,7 @@ import static org.junit.Assert.assertEquals;
 
 
 public class NetworkBlockListener implements BlockListener {
-	private static Logger logger = LogManager.getLogger(HyperledgerAPI.class);
+	private static Logger logger = LogManager.getLogger(NetworkBlockListener.class);
 
 //	 private static final Map<String, String> TX_EXPECTED;
 //

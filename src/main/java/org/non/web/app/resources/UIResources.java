@@ -128,4 +128,18 @@ public class UIResources {
 				return result;
 	}
 	
+	@Path("/queryHistory")
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	public String queryHistory (
+			@QueryParam("orgName") String orgName,
+			@QueryParam("userName") String userName,
+			@QueryParam("channelName") String channelName,
+			@QueryParam("compName") String compName) throws Exception {
+				System.out.println("Querying for History");
+				String result = hlconnection.queryHistory(orgName, userName, channelName, compName);
+				System.out.println(result);
+				return result;
+	}
+	
 }
