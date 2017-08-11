@@ -543,8 +543,14 @@ func (t *SimpleChaincode) getHistory (stub shim.ChaincodeStubInterface, args []s
 	key = args[1]
 	
 	fmt.Printf("########### start getHistoryForkey: %s ##########", key)
-
-	resultsIterator, err := stub.GetHistoryForKey(key)
+	
+	tradingpartner, err := stub.GetState(key)
+	prof := &Profile{""}
+	err = json.Unmarshal(tradingpartner, &prof)
+	index := "verified~uuid"
+	verifiedNameIndexKey, err := stub.CreateCompositeKey(index, []string{"Verified",prof.Uuid})
+	
+	resultsIterator, err := stub.GetHistoryForKey(verifiedNameIndexKey)
 	if err != nil {
 		return shim.Error(err.Error())
 	}
