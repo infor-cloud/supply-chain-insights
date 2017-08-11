@@ -87,6 +87,8 @@ func (t *SimpleChaincode) addMember (stub shim.ChaincodeStubInterface, args[] st
 	
 }
 
+
+
 func (t *SimpleChaincode) add (stub shim.ChaincodeStubInterface, args[] string) pb.Response{
 	if len(args) != 4 {
 		return shim.Error("Incorrect number of args; expecting the name of the two orgs and the connection") 
@@ -99,6 +101,9 @@ func (t *SimpleChaincode) add (stub shim.ChaincodeStubInterface, args[] string) 
 	buf, err := json.Marshal(connection)
 	index := "comp1~comp2"
 
+
+	// There are 2 keys being inserted into the ledger because there are 2 companies in one connection
+	// And with a composite key it is only possible to search by PREFIX
 	connectionIndexKey, err := stub.CreateCompositeKey(index, []string{comp1,comp2})
 	connectionIndexKey2, err := stub.CreateCompositeKey(index, []string{comp2,comp1})
 	if err != nil {
@@ -109,12 +114,6 @@ func (t *SimpleChaincode) add (stub shim.ChaincodeStubInterface, args[] string) 
 	stub.PutState(connectionIndexKey, buf);
 	stub.PutState(connectionIndexKey2, buf);	
 	
-	fmt.Println("##COMP1##");
-	fmt.Println(comp1);
-	fmt.Println("##COMP2##");
-	fmt.Println(comp2);
-	fmt.Println("##CONNECTION##");
-	fmt.Println(connection);
 	return shim.Success(nil)
 }
 
@@ -134,6 +133,8 @@ func (t *SimpleChaincode) delete (stub shim.ChaincodeStubInterface, args[] strin
 
 }
 
+
+// Query will return a list of all the connections associated with this one key
 func (t *SimpleChaincode) query (stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	fmt.Println("####QUERY CONNECTION#####")
 	if len(args) != 2 {

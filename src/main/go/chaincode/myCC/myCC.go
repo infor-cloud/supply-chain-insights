@@ -189,25 +189,55 @@ func (t *SimpleChaincode) addMember (stub shim.ChaincodeStubInterface, args[] st
 }
 
 func (t *SimpleChaincode) add (stub shim.ChaincodeStubInterface, args[] string) pb.Response{
+	fmt.Println("Adding trading Partner")
 	if len(args) != 4 {
 		return shim.Error ("Incorrect number of arguments. Expecting 4")	
 	}
 	var key string
 	var uuid []byte
-	
 	var err error
+	
+	prof := &Profile{""}
 	key = args[1]
+
+	state, err:= stub.GetState(key)
+	fmt.Println("State: " + string(state))
+
+	
 	if args[3]=="create"{
-		state, err:= stub.GetState(key)
+		fmt.Println("Creating a new partner");
+		
 		if state != nil {
 			jsonResp := "{\"Error\":\"Failed to get state for Already exist\"}"
 			return shim.Error(jsonResp)
 		}
 		if err != nil {
 			return shim.Error(err.Error())
+			
 		}
-	}
+		uuid = t.pseudo_uuid()
+		var uid int;
+		err = json.Unmarshal(uuid, &uid)
 	
+		prof = &Profile{strconv.Itoa(uid)}
+		fmt.Println("UUID: " + string(uuid))
+		fmt.Println("UID: " + strconv.Itoa(uid))
+		if err != nil {
+			fmt.Println("UID to string: " +  err.Error());
+			return shim.Error( err.Error())
+		}
+		
+		profBytes, err := json.Marshal(prof)
+		err = stub.PutState(key, profBytes)
+		if err != nil {
+			fmt.Println("Putting name to UUID into ledger error: ") 
+			fmt.Println(err.Error())	
+			return shim.Error(err.Error())
+		}	
+	} else if args[3] == "modify" {
+		fmt.Println("Modify Method is called so get the UUID for this trading partner")
+		err = json.Unmarshal(state, &prof)
+	}
 	//Initialize the Chaincode
 	
 	buf, err := json.Marshal(args[2])
@@ -222,27 +252,8 @@ func (t *SimpleChaincode) add (stub shim.ChaincodeStubInterface, args[] string) 
 	}
 	
 	// UUID is a random numeric 16 digit string  in byte array format
-	uuid = t.pseudo_uuid()
-	fmt.Println(uuid)
-
-	var uid int;
-	err = json.Unmarshal(uuid, &uid)
 	
-	prof := &Profile{strconv.Itoa(uid)}
 	
-	if err != nil {
-		fmt.Println("UID to string: " +  err.Error());
-		return shim.Error( err.Error())
-	}
-	
-	profBytes, err := json.Marshal(prof)
-	err = stub.PutState(key, profBytes)
-	if err != nil {
-		fmt.Println("Putting name to UUID into ledger error: ") 
-		fmt.Println(err.Error())
-		return shim.Error(err.Error())
-	}
-
 	fmt.Println(args[2]);
 	
 	// Create an empty TradeData to parse the trading partner passed in
@@ -264,7 +275,7 @@ func (t *SimpleChaincode) add (stub shim.ChaincodeStubInterface, args[] string) 
 		data.Verified = true;
 		boolVal = "Verified"
 		index := "verified~name"
-		verifiedNameIndexKey, _ := stub.CreateCompositeKey(index, []string{"Unverified",data.Name})
+		verifiedNameIndexKey, _ := stub.CreateCompositeKey(index, []string{"Unverified",prof.Uuid})
 		stub.DelState(verifiedNameIndexKey)
 	} else {
 		fmt.Println("Not verified :(")

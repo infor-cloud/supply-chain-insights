@@ -94,29 +94,30 @@
    window.onbeforeunload = function () {
 	   Cookies.set('added', "false", {domain: '', path: ''});
    };
-   $('#compName').on('blur', function () {
-	   $('#error').remove();
-		if(!$('#compName').val()){
-			$('#noName').show();
-			$("#submit").prop('disabled', true);
-	 	   //$(this).closest('.input-group')
-	     	 //  .addClass('has-error has-feedback')
-	 	     //  .prepend('<span class="help-block" id=error>Company Name can not be empty!</span>');
-		}
-		else {
-			$('#noName').hide();
-			   $("#submit").prop('disabled', false);
-			  $(this).closest('.input-group')
-	     	   .removeClass('has-error has-feedback')
-		}
-		
-	});
+//  $('#compName').on('blur', function () {
+//	   $('#error').remove();
+//		if(!$('#compName').val()){
+//			$('#noName').show();
+//			$("#submit").prop('disabled', true);
+//	 	   //$(this).closest('.input-group')
+//	     	 //  .addClass('has-error has-feedback')
+//	 	     //  .prepend('<span class="help-block" id=error>Company Name can not be empty!</span>');
+//		}
+//		else {
+//			$('#noName').hide();
+//			   $("#submit").prop('disabled', false);
+//			  $(this).closest('.input-group')
+//	     	   .removeClass('has-error has-feedback')
+//		}
+//		
+//	});
    
    $("#submit").click(function() {
 	   $("#goBack").prop('disabled', true);
 	   $("#create").prop('disabled', true);
 		$("#searchResults").remove()
 		$("#error").remove();
+		$("#accordion").remove();
 	   if(!$("#compName").val()) {
 		   $("#goBack").prop('disabled', false);
 		   $("#create").prop('disabled', false);

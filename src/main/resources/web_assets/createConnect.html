@@ -18,9 +18,8 @@
 <style>
 .take-all-space-you-can {
 	width: 33%;
-	margin-top:1%
+	margin-top: 1%
 }
-
 </style>
 </head>
 <body>
@@ -56,7 +55,8 @@
 			<div class="input-group-btn dropdown" id="stat">
 
 				<button type="button" class="btn btn-default dropdown-toggle"
-					data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="statusList">
+					data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+					id="statusList">
 					Set Status <span class="caret"></span>
 				</button>
 				<ul class="dropdown-menu dropdown-menu" id="statList">
@@ -85,42 +85,56 @@
 	</div>
 	<br>
 	<button id="create" class="btn btn-primary" style="margin-left: 3%">Create</button>
+	<p id ="er"style="margin-left: 3%"></p>
 	<script type="text/javascript">
-	
-	$(".dropdown-menu li a").click(function(){
-		  $(this).parents(".dropdown").find('.btn').html($(this).text() + ' <span class="caret"></span>');
-		  $(this).parents(".dropdown").find('.btn').val($(this).data('value'));
+		$(".dropdown-menu li a").click(
+				function() {
+					$(this).parents(".dropdown").find('.btn').html(
+							$(this).text() + ' <span class="caret"></span>');
+					$(this).parents(".dropdown").find('.btn').val(
+							$(this).data('value'));
+				});
+
+		var status = "";
+		var process = "";
+		$('#statList li a').on('click', function() {
+			status = $(this).html()
 		});
-	
-	var status;
-	var process;
-	$('#statList li a').on('click', function(){
-	   status = $(this).html()
-	});
-	$('#processList li a').on('click', function(){
-		process = $(this).html()
-	})
-  $("#create").click(function() {
-	$.ajax({
-		type: "GET",
-		url: "http://localhost:8080/fabric/createConnect",
-		dataType: "json",
-		success: function(data) {
-			Cookies.set('added', "true", {domain: '', path: ''});
-				location.href="./searchConnection.html"
-		},
-			data: {	
-				comp1: $("#comp1").val(),
-				comp2: $("#comp2").val(), 
-				status: status,
-				process: process,
-				userName: Cookies.get('userName'),
-				orgName: Cookies.get('orgName'),
-				channelName: Cookies.get('channelName'),
+		$('#processList li a').on('click', function() {
+			process = $(this).html()
+		})
+		$("#create").click(function() {
+			if (status == "" || process == "" ||  !$("#comp1").val() || !$("#comp2").val()) {
+				$("#error").remove();
+				$('#er').append("<p id='error'></p>")
+				$("#error").prepend("All fields must be filled in!" )
+				$("#error").css('color','red')
+
+			} else {
+				$.ajax({
+					type : "GET",
+					url : "http://localhost:8080/fabric/createConnect",
+					dataType : "json",
+					success : function(data) {
+						Cookies.set('added', "true", {
+							domain : '',
+							path : ''
+						});
+						location.href = "./searchConnection.html"
+					},
+					data : {
+						comp1 : $("#comp1").val(),
+						comp2 : $("#comp2").val(),
+						status : status,
+						process : process,
+						userName : Cookies.get('userName'),
+						orgName : Cookies.get('orgName'),
+						channelName : Cookies.get('channelName'),
+					}
+				});
 			}
 		});
-	});
-  </script>
+	</script>
 
 
 </body>

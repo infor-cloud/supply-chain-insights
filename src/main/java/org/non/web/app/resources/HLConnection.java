@@ -40,7 +40,7 @@ public class HLConnection {
 	private String CONNECTION_CHAIN_CODE_NAME = "connectionCC_go";
 	private String CONNECTION_CHAIN_CODE_PATH = "main/go/chaincode/connectionChaincode";
 	private String CONNECTION_CHAIN_CODE_VERSION = "1";
-	private ChaincodeID transactionChaincodeID;
+	private ChaincodeID connectionChaincodeID;
 
 	// private Block block;
 	private static HLConnection hlconnection;
@@ -76,7 +76,7 @@ public class HLConnection {
 		chainCodeID = ChaincodeID.newBuilder().setName(CHAIN_CODE_NAME).setVersion(CHAIN_CODE_VERSION)
 				.setPath(CHAIN_CODE_PATH).build();
 
-		transactionChaincodeID = ChaincodeID.newBuilder().setName(CONNECTION_CHAIN_CODE_NAME)
+		connectionChaincodeID = ChaincodeID.newBuilder().setName(CONNECTION_CHAIN_CODE_NAME)
 				.setVersion(CONNECTION_CHAIN_CODE_VERSION).setPath(CONNECTION_CHAIN_CODE_PATH).build();
 		try {
 			/* Construct Channel */
@@ -93,8 +93,8 @@ public class HLConnection {
 
 			/* Install Chaincode on peers */
 			for (Organization org : channelorgs) {
-				//HyperledgerAPI.installChaincode(client, org.getPeerAdmin(), org.getPeers(), chaincodeID);
-				HyperledgerAPI.installChaincode(client, org.getPeerAdmin(), org.getPeers(), transactionChaincodeID);
+				HyperledgerAPI.installChaincode(client, org.getPeerAdmin(), org.getPeers(), chaincodeID);
+				HyperledgerAPI.installChaincode(client, org.getPeerAdmin(), org.getPeers(), connectionChaincodeID);
 			}
 
 			/*Register a BlockListener on channel*/
@@ -102,8 +102,11 @@ public class HLConnection {
 			ch1.registerBlockListener(listener);
 			
 			/* Initiate Chaincode on peers on the channel */
-			HyperledgerAPI.initiateChaincode(client, transactionChaincodeID, ch1, "scripts/chaincodeendorsementpolicy.yaml");
-			/*
+			HyperledgerAPI.initiateChaincode(client, connectionChaincodeID, ch1, "scripts/chaincodeendorsementpolicy.yaml");
+			
+			
+			// Completable Future is used here because the chaincode must finish init in order for us to
+			// Add the orgs and their roles into the ledger
 			CompletableFuture<TransactionEvent> initFuture = HyperledgerAPI.initiateChaincode(client, chaincodeID, ch1,
 					"scripts/chaincodeendorsementpolicy.yaml");
 			int TRANSACTIONWAITTIME = 140000;
@@ -130,7 +133,7 @@ public class HLConnection {
 				return null;
 
 			}).get(TRANSACTIONWAITTIME, TimeUnit.SECONDS);
-			*/
+	
 			logger.info("That's all!");
 
 		} catch (Exception e) {
@@ -165,7 +168,7 @@ public class HLConnection {
 			String args[] = { "add", connect.getComp1(), connect.getComp2(), connectString };
 
 			HyperledgerAPI.invoke(args, config.getOrgDetailsByName(orgName).getUserByName(userName), client,
-					transactionChaincodeID, ch);
+					connectionChaincodeID, ch);
 			return ("SUCCESS");
 		}
 
@@ -254,7 +257,7 @@ public class HLConnection {
 		Channel ch = client.getChannel(channelName);
 		NetworkUser user = config.getOrgDetailsByName(orgName).getUserByName(userName);
 		List<Peer> orgPeers = config.getOrgDetailsByName(orgName).getPeers();
-		String result = HyperledgerAPI.query(args, user, client,transactionChaincodeID, ch,orgPeers);
+		String result = HyperledgerAPI.query(args, user, client,connectionChaincodeID, ch,orgPeers);
 		
 		System.out.println(result);
 		if (result.isEmpty()){

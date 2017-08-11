@@ -126,6 +126,10 @@ public class UIResources {
 				System.out.println("Querying for Connection");
 				String result = hlconnection.queryConnection(orgName, userName, channelName, compName);
 				System.out.println(result);
+				if (result.isEmpty() || result.length() < 3){
+					System.out.println("Result is empty!");
+					result = "No connection found!";
+				}
 				return result;
 	}
 	
