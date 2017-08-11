@@ -103,7 +103,7 @@ public class ChannelUtilTest{
 								try {
 									List<Peer> orgPeers = thisOrg.getPeers();
 									payload = HyperledgerAPI.query(new String[] { "getHistory", sampleKey}, config.getOrgDetailsByName(ORG_NAME_DNB).getUserByName(TESTUSER_1_NAME),
-											client, chaincodeID, ch1,orgPeers);
+											client, chaincodeID, ch1 ,orgPeers);
 								} catch (Exception e) {
 									e.printStackTrace();
 								}
