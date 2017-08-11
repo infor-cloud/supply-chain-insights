@@ -7,9 +7,12 @@ import(
 	"bytes"
 	"strconv"
 	"time"
+	"strings"
+	"math/rand"
+
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	pb "github.com/hyperledger/fabric/protos/peer"
-
+	
 )
 
 // Chaincode Implementation
@@ -33,6 +36,14 @@ type TradeData struct{
 	Verified 	bool
 }
 
+type Profile struct {
+	Uuid string
+}
+
+type Metadata struct {
+	ProposalUpdateKey string
+	
+}
 type Identifier struct {
 	SchemeName	string `json:"schemeName"`
 	Id 			string `json:"id"`	
@@ -40,13 +51,15 @@ type Identifier struct {
 
 
 
-
+// Init is called once in the  beginning to define any neccessary variables.
+// Here, we don't need it, and just return a nil string
 func ( t *SimpleChaincode) Init (stub shim.ChaincodeStubInterface) pb.Response {
 	fmt.Println("##### INIT CC ####");
-	fmt.Println("hello world");
 	return shim.Success(nil)
 }
 
+// All methods will need a function type of invoke and then the method they want to call
+// as the first parameter of the args
 func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response{
 	fmt.Println("########## example_cc Invoke #########")
 	function, args := stub.GetFunctionAndParameters()
@@ -90,11 +103,16 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response{
 		return t.getHistory (stub, args)	
 	}
 	
-	return shim.Error("unknown action, must be of add, modify, query or delete")
+	fmt.Println("Cant find method of" + args[0])
+	return shim.Error("unknown action, must be of add, addMember, modify, query, queryVerified, queryByRange, getHistory or delete")
 }
 
-
+// Any member of the network can make a transaction, however, all data must be
+// verified by an oracle, so here we check the creator of the transaction and
+// if the user's certificate is in the ledger as an oracle, their transaction will
+// be considered VERIFIED
 func (t *SimpleChaincode) isVerified (stub shim.ChaincodeStubInterface) bool{
+	// resp will be the certificate and mspID of the person who made this transaction
 	resp, err := stub.GetCreator()
 	key := string (resp)
 	if err != nil {
@@ -102,6 +120,8 @@ func (t *SimpleChaincode) isVerified (stub shim.ChaincodeStubInterface) bool{
 		return	false;
 	}
 	fmt.Println(key)
+	
+	// Certs should have been enrolled in the ledger in the addMember at the beginning of the channel creation
 	roleBytes,err := stub.GetState(key)
 	fmt.Println("Rolebytes: ", roleBytes)
 	var role string
@@ -111,6 +131,8 @@ func (t *SimpleChaincode) isVerified (stub shim.ChaincodeStubInterface) bool{
 		fmt.Println("Error getting role from cert");
 		return false;
 	}
+	
+	// Check the value from the user cert, and verify if oracle, and do not verify otherwise
 	if role == "ntp" {
 		return false
 	} else if role == "oracle" {
@@ -121,6 +143,22 @@ func (t *SimpleChaincode) isVerified (stub shim.ChaincodeStubInterface) bool{
 }
 
 
+func (t *SimpleChaincode) pseudo_uuid() []byte {
+
+    b := make([]byte, 16)
+    var i int
+	for i = 0; i < len(b); i++ {
+		//UUID will be a random 16 digit byte array, with each digit being a number from 0-9
+		// On a side note, math/rand is used because crypto/rand gave us huge problems
+		// when putting into the ledger. Very sad :(
+		b[i] = byte(rand.Intn(10)+48)
+	}
+    return b
+}
+
+
+// addMember will take in one parameter as the role of this user, and the certificate is
+// obtained from the method stub.GetCreator(), which is mspID + certificate of the User
 func (t *SimpleChaincode) addMember (stub shim.ChaincodeStubInterface, args[] string) pb.Response  {
 	if len(args) != 2 {
 		return shim.Error ("Incorrect Number of arguments. Expecting 2")
@@ -134,6 +172,7 @@ func (t *SimpleChaincode) addMember (stub shim.ChaincodeStubInterface, args[] st
 		fmt.Println("goshdarn it %s\n", err)
 		return shim.Error("Getting the creator failed")
 	} 
+	// GetCreator() returns a byte array so it must be parsed to a string in order to be a key
 	var msp string = string(resp)
 	fmt.Println("buf: ")
 	fmt.Println(buf)
@@ -150,49 +189,93 @@ func (t *SimpleChaincode) addMember (stub shim.ChaincodeStubInterface, args[] st
 }
 
 func (t *SimpleChaincode) add (stub shim.ChaincodeStubInterface, args[] string) pb.Response{
+	fmt.Println("Adding trading Partner")
 	if len(args) != 4 {
 		return shim.Error ("Incorrect number of arguments. Expecting 4")	
 	}
 	var key string
+	var uuid []byte
 	var err error
+	
+	prof := &Profile{""}
 	key = args[1]
+
+	state, err:= stub.GetState(key)
+	fmt.Println("State: " + string(state))
+
+	
 	if args[3]=="create"{
-		state, err:= stub.GetState(key)
+		fmt.Println("Creating a new partner");
+		
 		if state != nil {
 			jsonResp := "{\"Error\":\"Failed to get state for Already exist\"}"
 			return shim.Error(jsonResp)
 		}
 		if err != nil {
 			return shim.Error(err.Error())
+			
 		}
-	}
+		uuid = t.pseudo_uuid()
+		var uid int;
+		err = json.Unmarshal(uuid, &uid)
 	
+		prof = &Profile{strconv.Itoa(uid)}
+		fmt.Println("UUID: " + string(uuid))
+		fmt.Println("UID: " + strconv.Itoa(uid))
+		if err != nil {
+			fmt.Println("UID to string: " +  err.Error());
+			return shim.Error( err.Error())
+		}
+		
+		profBytes, err := json.Marshal(prof)
+		err = stub.PutState(key, profBytes)
+		if err != nil {
+			fmt.Println("Putting name to UUID into ledger error: ") 
+			fmt.Println(err.Error())	
+			return shim.Error(err.Error())
+		}	
+	} else if args[3] == "modify" {
+		fmt.Println("Modify Method is called so get the UUID for this trading partner")
+		err = json.Unmarshal(state, &prof)
+	}
 	//Initialize the Chaincode
 	
 	buf, err := json.Marshal(args[2])
 	
+	key = strings.ToLower(args[1])
+	
+	//Marshal takes in a string version of a trading partner and converts it into a byte array
+	//buf, err := json.Marshal(args[2])
 	if err != nil {
 		fmt.Println(err.Error());
 		return shim.Error( err.Error())
 	}
 	
-	id := make([]Identifier,0);
-		
+	// UUID is a random numeric 16 digit string  in byte array format
+	
+	
+	fmt.Println(args[2]);
+	
+	// Create an empty TradeData to parse the trading partner passed in
+	id := make([]Identifier,0);	
 	data := &TradeData{"","","","","","","","",id, false}
+	
+	// Unmarshal takes the trading partner string into a TradingPartner class
 	err = json.Unmarshal([]byte(args[2]),data)
 	
 	if err!=nil {
 		fmt.Println("Error %s", err);
+		return shim.Error(err.Error())
 	}
 	
 	var boolVal string
-	fmt.Println("##########DATA############")
+	// Check the role of the person making this transaction
 	if t.isVerified(stub) {
 		fmt.Println ("Verified!")
 		data.Verified = true;
 		boolVal = "Verified"
 		index := "verified~name"
-		verifiedNameIndexKey, _ := stub.CreateCompositeKey(index, []string{"Unverified",data.Name})
+		verifiedNameIndexKey, _ := stub.CreateCompositeKey(index, []string{"Unverified",prof.Uuid})
 		stub.DelState(verifiedNameIndexKey)
 	} else {
 		fmt.Println("Not verified :(")
@@ -200,21 +283,42 @@ func (t *SimpleChaincode) add (stub shim.ChaincodeStubInterface, args[] string) 
 		boolVal = "Unverified"
 	}
 
+	
+	//buf, err =  json.Marshal(data)
+	/*
 //	buf, err =  json.Marshal(data)
 	err = stub.PutState(key, buf)
 	if (err != nil){
 		return shim.Error(err.Error())
 	}	
+*/
 	
-	index := "verified~name"
-
-	verifiedNameIndexKey, err := stub.CreateCompositeKey(index, []string{boolVal,data.Name})
+	
+	// Creating a composite key:
+	// The key will have a format similar to verified~uuidVerified1234ImARealNumber5
+	// This format allows us to search the composites for the index and then
+	// The value of the prefix of the key. 
+	index := "verified~uuid"
+	verifiedNameIndexKey, err := stub.CreateCompositeKey(index, []string{boolVal,prof.Uuid})
 	if err != nil {
 		return shim.Error(err.Error())
 	}
-	value := []byte{0x00}
 	fmt.Println(verifiedNameIndexKey)
-	stub.PutState(verifiedNameIndexKey, value)
+	stub.PutState(verifiedNameIndexKey, buf)
+	
+	index = "metadata~uuid"
+	metadataUUIDIndexKey, err := stub.CreateCompositeKey(index, []string{"metadata",prof.Uuid})
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+	metaKey,err := stub.CreateCompositeKey(index, []string{"Unverified",prof.Uuid})
+	metadata := Metadata{metaKey}
+	fmt.Println(metadataUUIDIndexKey)
+	metaBytes,err := json.Marshal(metadata)
+	stub.PutState(metadataUUIDIndexKey, metaBytes )
+	
+	
+	fmt.Println("Add finished");
 	return shim.Success(nil)
 }
 
@@ -265,40 +369,54 @@ func (t *SimpleChaincode) addConnection (stub shim.ChaincodeStubInterface, args 
 }
 
 func (t *SimpleChaincode) query (stub shim.ChaincodeStubInterface, args []string) pb.Response{
+	fmt.Println ("#### QUERY BEGIN ####")
 	var key string
-	trade :=  TradingPartner{}
+	//trade :=  TradingPartner{}
 	var err error
 	if  len(args) != 2	 {
 		return shim.Error ("Incorrect number of arguments. Expecting name of the person to query")
 	}
-	key = args[1]
+	key = strings.ToLower(args[1])
 	
+	// Get the UUID from the ledger by the name of the company
 	tradingpartner, err := stub.GetState(key)
 	fmt.Println("Printing tradingpartner[byte]:")
-	fmt.Println(string(tradingpartner))
+	fmt.Println("String data: " + string(tradingpartner))
 
 	if err != nil {
 			jsonResp := "{\"Error\":\"Failed to get state for " + key + "\"}"
 			return shim.Error(jsonResp)
 	}
-	json.Unmarshal([]byte(tradingpartner), &trade)
 	
-	fmt.Println("Printing trade[value]:")
-	fmt.Println(trade)
+	prof := &Profile{""}
+	err = json.Unmarshal(tradingpartner, &prof)
 	
-	return shim.Success(tradingpartner)
+	// Searching only the verified states in the query method for the UUID provided by the name
+	index := "verified~uuid"
+	verifiedNameIndexKey, err := stub.CreateCompositeKey(index, []string{"Verified",prof.Uuid})
+	fmt.Println("Index Key: " + verifiedNameIndexKey);
+	data, err := stub.GetState(verifiedNameIndexKey)
+	
+	fmt.Println("Data: " +  string(data));
+	//json.Unmarshal([]byte(tradingpartner), &trade)
+	fmt.Println("#### Query End ####");
+	return shim.Success(data)
 }
 
+
+// Query Verified will return a list of trading partners that will either be of type 
+// Verified or Unverified
 func (t *SimpleChaincode) queryVerified(stub shim.ChaincodeStubInterface, args[]string) pb.Response{
     fmt.Println("queryVerified");
-    //Uncomment after updating HLConnection
+    
+    // In order to look at the verified data, the user must of role Oracle
     if t.isVerified(stub) == false {
        return shim.Error("You're not allowed to be here")
     } 
-    verified := args[1]
-    //verified := "Unverified"
     
-    verifiedResultsIterator, err := stub.GetStateByPartialCompositeKey("verified~name", []string{verified})
+    // Create an iterator for a list of keys that have the field of what we want to find
+    verified := args[1]
+    verifiedResultsIterator, err := stub.GetStateByPartialCompositeKey("verified~uuid", []string{verified})
     
     if err != nil {
         fmt.Println("Got Error getting the iterator");
@@ -315,7 +433,7 @@ func (t *SimpleChaincode) queryVerified(stub shim.ChaincodeStubInterface, args[]
         if err != nil {
             return shim.Error(err.Error())
         }
-
+		/*
         objectType, compositeKeyParts, err := stub.SplitCompositeKey(responseRange.Key)
         if err != nil {
             return shim.Error(err.Error())
@@ -325,6 +443,8 @@ func (t *SimpleChaincode) queryVerified(stub shim.ChaincodeStubInterface, args[]
         fmt.Printf("- found a Partner from index:%s verification:%s name:%s\n", objectType, returnedVerification, returnedPartnerName)
         
         trade,err = stub.GetState(returnedPartnerName)
+        */
+		trade, err = stub.GetState(responseRange.Key)
         if bArrayMemberAlreadyWritten == true {
             buffer.WriteString(",")
         }
@@ -339,6 +459,7 @@ func (t *SimpleChaincode) queryVerified(stub shim.ChaincodeStubInterface, args[]
     
 }
 
+// **** CURRENTLY UNUSED *****
 func (t *SimpleChaincode) modify (stub shim.ChaincodeStubInterface, args []string) pb.Response{
 	var key string
 	var err error
@@ -357,21 +478,22 @@ func (t *SimpleChaincode) modify (stub shim.ChaincodeStubInterface, args []strin
 	return shim.Success(nil);
 }
 
+
+// Searches the ledger by prefix, for any key that are between the startkey and endkey passed in by the user
 func (t *SimpleChaincode) queryByRange (stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	var startKey string
 	var endKey string
 	
 	fmt.Println("query by range start");
-	
 	if len(args) != 3 {
 		return shim.Error("Incorrect number of arguments, expecting 3") 
 	}
+	
 	
 	startKey = args[1]
 	endKey = args[2]
 	
 	tradeList,err := stub.GetStateByRange(startKey, endKey) 
-	
 	if err != nil {
 		fmt.Println("Error getting state")
 		return shim.Error(err.Error())
@@ -410,6 +532,8 @@ func (t *SimpleChaincode) queryByRange (stub shim.ChaincodeStubInterface, args [
 	return shim.Success(buffer.Bytes())
 }
 
+
+// Gets all of the changes to this key
 func (t *SimpleChaincode) getHistory (stub shim.ChaincodeStubInterface, args []string) pb.Response{
 	var key string
 	var err error
@@ -419,8 +543,14 @@ func (t *SimpleChaincode) getHistory (stub shim.ChaincodeStubInterface, args []s
 	key = args[1]
 	
 	fmt.Printf("########### start getHistoryForkey: %s ##########", key)
-
-	resultsIterator, err := stub.GetHistoryForKey(key)
+	
+	tradingpartner, err := stub.GetState(key)
+	prof := &Profile{""}
+	err = json.Unmarshal(tradingpartner, &prof)
+	index := "verified~uuid"
+	verifiedNameIndexKey, err := stub.CreateCompositeKey(index, []string{"Verified",prof.Uuid})
+	
+	resultsIterator, err := stub.GetHistoryForKey(verifiedNameIndexKey)
 	if err != nil {
 		return shim.Error(err.Error())
 	}

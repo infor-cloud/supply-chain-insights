@@ -94,29 +94,30 @@
    window.onbeforeunload = function () {
 	   Cookies.set('added', "false", {domain: '', path: ''});
    };
-   $('#compName').on('blur', function () {
-	   $('#error').remove();
-		if(!$('#compName').val()){
-			$('#noName').show();
-			$("#submit").prop('disabled', true);
-	 	   //$(this).closest('.input-group')
-	     	 //  .addClass('has-error has-feedback')
-	 	     //  .prepend('<span class="help-block" id=error>Company Name can not be empty!</span>');
-		}
-		else {
-			$('#noName').hide();
-			   $("#submit").prop('disabled', false);
-			  $(this).closest('.input-group')
-	     	   .removeClass('has-error has-feedback')
-		}
-		
-	});
+//  $('#compName').on('blur', function () {
+//	   $('#error').remove();
+//		if(!$('#compName').val()){
+//			$('#noName').show();
+//			$("#submit").prop('disabled', true);
+//	 	   //$(this).closest('.input-group')
+//	     	 //  .addClass('has-error has-feedback')
+//	 	     //  .prepend('<span class="help-block" id=error>Company Name can not be empty!</span>');
+//		}
+//		else {
+//			$('#noName').hide();
+//			   $("#submit").prop('disabled', false);
+//			  $(this).closest('.input-group')
+//	     	   .removeClass('has-error has-feedback')
+//		}
+//		
+//	});
    
    $("#submit").click(function() {
 	   $("#goBack").prop('disabled', true);
 	   $("#create").prop('disabled', true);
 		$("#searchResults").remove()
 		$("#error").remove();
+		$("#accordion").remove();
 	   if(!$("#compName").val()) {
 		   $("#goBack").prop('disabled', false);
 		   $("#create").prop('disabled', false);
@@ -129,18 +130,23 @@
 			type: "GET",
 			url: "http://localhost:8080/fabric/queryConnection",
 			dataType: "json",
-			success: function(data) {
-				var obj = JSON.parse(data);
-				$('body').append ("<div id='searchResults'></div>")
-				$('#searchResults').append ("<table class='table table-bordered col-xs-6' id=res>" +
-												"<tbody>" + 
-													"<tr><td>Company</td><td>" + obj.comp1 + "</td></tr>" + 
-													"<tr><td>Company</td><td>" + obj.comp2 + "</td></tr>" + 
-													"<tr><td>Status</td><td>" + obj.status + "</td></tr>" + 
-													"<tr><td>Business Process</td><td>" + obj.businessProcess + "</td></tr></tbody>");
-				$("#goBack").prop('disabled', false);
+			success: function(unverifiedData) {
+				//var unverifiedData = JSON.parse(data);
+				$('body').append ("<div class='col-lg-10'><div class='panel-group' id='accordion' role='tablist' aria-multiselectable='true'></div></div>");
+				
+				for(var i=0;i<unverifiedData.length;i++){
+					var obj=JSON.parse(unverifiedData[i]);			    
+					//Cookies.set(unverifiedTradingPartner.name,unverifiedTradingPartner);
+				$('#accordion').append ("<div class='panel panel-default'><div class='panel-heading' role='tab' id='heading"+i+"'><a role='button' data-toggle='collapse' data-parent='#accordion' href='#collapse"+i+"' aria-expanded='false' aria-controls='collapseOne'><h4 class='panel-title'>"+
+						obj.comp2 +"</h4></a></div><div id='collapse"+i+"' class='panel-collapse collapse ' role='tabpanel' aria-labelledby='headingOne'><div class='panel-body'>"+
+			        "<div id='searchResults"+i+"'></div><table class='table table-bordered' id='res"+i+"'>" +
+							"<tbody>" + 
+								"<tr><td>Company</td><td>" + obj.comp1 + "</td></tr>" + 
+								"<tr><td>Company</td><td>" + obj.comp2 + "</td></tr>" + 
+								"<tr><td>Status</td><td>" + obj.status + "</td></tr>" + 
+								"<tr><td>Business Process</td><td>" + obj.businessProcess + "</td></tr></tbody>");
 				$("#create").prop('disabled', false);
-				$('#modify').show();
+				}
 			},
 			error: function(data){
 				$('#search').append("<p id='error'></p>")

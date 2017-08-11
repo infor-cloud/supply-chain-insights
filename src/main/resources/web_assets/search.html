@@ -153,6 +153,8 @@
 			url: "http://localhost:8080/fabric/search",
 			dataType: "json",
 			success: function(data) {
+				//alert(data.name)
+				//var obj = JSON.parse(data);
 				obj = JSON.parse(data);
 				$('body').append ("<div id='searchResults'></div>")
 				$('#searchResults').append ("<table class='table table-bordered col-xs-6' id=res>" +
@@ -165,7 +167,7 @@
 													"<tr><td>Contact Name</td><td>" + obj.contactName + "</td></tr>" + 
 													"<tr><td>Contact Email</td><td>" + obj.contactEmail + "</td></tr>" + 
 													"<tr><td>Contact Telephone</td><td>" + obj.contactTelephone + "</td></tr>");
-				$.each(data.idList,function(index, value){
+				$.each(obj.idList,function(index, value){
 					$('#res').append("<tr><td> Identifier:" + value.schemeName + "</td><td>" + value.id + "</td><tr>")
 				});
 				

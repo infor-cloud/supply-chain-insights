@@ -40,6 +40,7 @@ public class UIResources {
 				+ "\n compName: " + compName);
 		
 		String result = hlconnection.getTradingPartner(orgName, userName, channelName, compName);
+		//hlconnection.queryVerified(orgName, userName, channelName);
 		System.out.println("RESULT:" + result);
 		return result;
 	}
@@ -125,6 +126,10 @@ public class UIResources {
 				System.out.println("Querying for Connection");
 				String result = hlconnection.queryConnection(orgName, userName, channelName, compName);
 				System.out.println(result);
+				if (result.isEmpty() || result.length() < 3){
+					System.out.println("Result is empty!");
+					result = "No connection found!";
+				}
 				return result;
 	}
 	
